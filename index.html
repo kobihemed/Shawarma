@@ -25,8 +25,15 @@
         h1 {
             color: #d9534f;
             text-align: center;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
             margin-bottom: 25px;
-            font-size: 24px;
+            font-weight: 600;
         }
         .form-group {
             margin-bottom: 20px;
@@ -84,19 +91,8 @@
             cursor: not-allowed;
             opacity: 0.7;
         }
-        #success-message {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #d4edda;
-            color: #155724;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-            line-height: 1.5;
-        }
         #closed-message {
-            display: block; /* ברירת מחדל: מוצג כסגור */
+            display: block;
             margin-bottom: 20px;
             padding: 15px;
             background-color: #f8d7da;
@@ -104,6 +100,33 @@
             border-radius: 6px;
             text-align: center;
             font-weight: bold;
+        }
+
+        /* מסך אישור קבלת ההזמנה */
+        #confirmationScreen {
+            display: none;
+            text-align: center;
+            padding: 20px 10px;
+        }
+        #confirmationScreen h2 {
+            color: #28a745;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        #confirmationScreen p {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .btn-new-order {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
         }
 
         /* עיצוב חלונית מנהל נסתרת */
@@ -145,84 +168,90 @@
 <body>
 
 <div class="container">
-    <h1>נא בחר את השווארמה שתרצה</h1>
+    <!-- מסך הטופס -->
+    <div id="formScreen">
+        <h1>ברוכים הבאים למסך הזמנת השווארמה שלנו!</h1>
+        <div class="subtitle" id="providerSubtitle">היום השווארמה מגיעה מ...</div>
 
-    <div id="closed-message">
-        ⏳ בודק זמינות מערכת...
+        <div id="closed-message">
+            ⏳ בודק זמינות מערכת...
+        </div>
+
+        <form id="shawarmaForm">
+            <fieldset id="formFields" disabled>
+                <!-- שם המזמין -->
+                <div class="form-group">
+                    <label for="userName" class="section-label">שם מלא:</label>
+                    <input type="text" id="userName" name="userName" placeholder="הכנס את שמך" required>
+                </div>
+
+                <!-- בחירת סוג הלחם / הגשה -->
+                <div class="form-group">
+                    <label class="section-label">סוג הלחם / הגשה:</label>
+                    <div class="options-group">
+                        <label class="radio-item"><input type="radio" name="bread" value="פיתה" required> פיתה</label>
+                        <label class="radio-item"><input type="radio" name="bread" value="לאפה"> לאפה</label>
+                        <label class="radio-item"><input type="radio" name="bread" value="באגט"> באגט</label>
+                        <label class="radio-item"><input type="radio" name="bread" value="צלחת"> צלחת</label>
+                    </div>
+                </div>
+
+                <!-- בחירה נוספת: סוג הבשר -->
+                <div class="form-group">
+                    <label class="section-label">סוג הבשר:</label>
+                    <div class="options-group">
+                        <label class="radio-item"><input type="radio" name="meat" value="עגל" required> עגל</label>
+                        <label class="radio-item"><input type="radio" name="meat" value="הודו"> הודו</label>
+                        <label class="radio-item"><input type="radio" name="meat" value="מעורב"> מעורב (עגל + הודו)</label>
+                    </div>
+                </div>
+
+                <!-- בחירה נוספת: סלטים ותוספות -->
+                <div class="form-group">
+                    <label class="section-label">תוספות וסלטים בתוך המנה:</label>
+                    <div class="options-group">
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="חומוס"> חומוס</label>
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="טחינה"> טחינה</label>
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="סלט ערבי"> סלט ערבי</label>
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="חריף"> חריף</label>
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="חמוצים"> חמוצים</label>
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="צ'יפס בתוך המנה"> צ'יפס בתוך המנה</label>
+                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="צ'יפס בצד"> צ'יפס בצד</label>
+                    </div>
+                </div>
+
+                <!-- עמודת הערות -->
+                <div class="form-group">
+                    <label for="notes" class="section-label">הערות מיוחדות:</label>
+                    <textarea id="notes" name="notes" placeholder="הערות נוספות (למשל: בלי בצל, הרבה טחינה וכו')"></textarea>
+                </div>
+
+                <!-- בחירת שתייה -->
+                <div class="form-group">
+                    <label for="drink" class="section-label">שתייה:</label>
+                    <select id="drink" name="drink">
+                        <option value="ללא שתייה">ללא שתייה</option>
+                        <option value="קוקה קולה">קוקה קולה</option>
+                        <option value="קולה זירו">קולה זירו</option>
+                        <option value="ספרייט">ספרייט</option>
+                        <option value="ספרייט זירו">ספרייט זירו</option>
+                        <option value="פנטה">פנטה</option>
+                        <option value="ענבים">מיץ ענבים</option>
+                        <option value="סודה">סודה</option>
+                        <option value="מים מינרליים">מים מינרליים</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">שלח הזמנה</button>
+            </fieldset>
+        </form>
     </div>
 
-    <form id="shawarmaForm">
-        <!-- ברירת מחדל: הטופס נעול מראש בזמן הבדיקה -->
-        <fieldset id="formFields" disabled>
-            <!-- שם המזמין -->
-            <div class="form-group">
-                <label for="userName" class="section-label">שם מלא:</label>
-                <input type="text" id="userName" name="userName" placeholder="הכנס את שמך" required>
-            </div>
-
-            <!-- בחירת סוג הלחם / הגשה -->
-            <div class="form-group">
-                <label class="section-label">סוג הלחם / הגשה:</label>
-                <div class="options-group">
-                    <label class="radio-item"><input type="radio" name="bread" value="פיתה" required> פיתה</label>
-                    <label class="radio-item"><input type="radio" name="bread" value="לאפה"> לאפה</label>
-                    <label class="radio-item"><input type="radio" name="bread" value="באגט"> באגט</label>
-                    <label class="radio-item"><input type="radio" name="bread" value="צלחת"> צלחת</label>
-                </div>
-            </div>
-
-            <!-- בחירה נוספת: סוג הבשר -->
-            <div class="form-group">
-                <label class="section-label">סוג הבשר:</label>
-                <div class="options-group">
-                    <label class="radio-item"><input type="radio" name="meat" value="עגל" required> עגל</label>
-                    <label class="radio-item"><input type="radio" name="meat" value="הודו"> הודו</label>
-                    <label class="radio-item"><input type="radio" name="meat" value="מעורב"> מעורב (עגל + הודו)</label>
-                </div>
-            </div>
-
-            <!-- בחירה נוספת: סלטים ותוספות -->
-            <div class="form-group">
-                <label class="section-label">תוספות וסלטים בתוך המנה:</label>
-                <div class="options-group">
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="חומוס"> חומוס</label>
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="טחינה"> טחינה</label>
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="סלט ערבי"> סלט ערבי</label>
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="חריף"> חריף</label>
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="חמוצים"> חמוצים</label>
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="צ'יפס בתוך המנה"> צ'יפס בתוך המנה</label>
-                    <label class="checkbox-item"><input type="checkbox" name="toppings" value="צ'יפס בצד"> צ'יפס בצד</label>
-                </div>
-            </div>
-
-            <!-- עמודת הערות -->
-            <div class="form-group">
-                <label for="notes" class="section-label">הערות מיוחדות:</label>
-                <textarea id="notes" name="notes" placeholder="הערות נוספות (למשל: בלי בצל, הרבה טחינה וכו')"></textarea>
-            </div>
-
-            <!-- בחירת שתייה -->
-            <div class="form-group">
-                <label for="drink" class="section-label">שתייה (עמודה G1):</label>
-                <select id="drink" name="drink">
-                    <option value="ללא שתייה">ללא שתייה</option>
-                    <option value="קוקה קולה">קוקה קולה</option>
-                    <option value="קולה זירו">קולה זירו</option>
-                    <option value="ספרייט">ספרייט</option>
-                    <option value="ספרייט זירו">ספרייט זירו</option>
-                    <option value="פנטה">פנטה</option>
-                    <option value="ענבים">מיץ ענבים</option>
-                    <option value="סודה">סודה</option>
-                    <option value="מים מינרליים">מים מינרליים</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn-submit" id="submitBtn">שלח הזמנה</button>
-        </fieldset>
-    </form>
-
-    <div id="success-message">
-        ההזמנה נשלחה למרכז ההזמנות "LalushMobile" וצפויה להיות מוגשת עד השעה 12:00 🌯
+    <!-- מסך אישור לאחר שליחה -->
+    <div id="confirmationScreen">
+        <h2>🎉 ההזמנה נקלעה בהצלחה!</h2>
+        <p>ההזמנה נשלחה למרכז ההזמנות <strong>"LalushMobile"</strong> וצפויה להיות מוגשת עד השעה <strong>12:00</strong> 🌯</p>
+        <button class="btn-new-order" onclick="resetToNewOrder()">ביצוע הזמנה נוספת</button>
     </div>
 </div>
 
@@ -242,6 +271,7 @@
     const orderToggle = document.getElementById('orderToggle');
     const formFields = document.getElementById('formFields');
     const closedMessage = document.getElementById('closed-message');
+    const providerSubtitle = document.getElementById('providerSubtitle');
 
     function updateFormUI(isOpen) {
         formFields.disabled = !isOpen;
@@ -254,12 +284,15 @@
         orderToggle.checked = isOpen;
     }
 
-    // בדיקת מצב הטופס מול Google Sheets
+    // בדיקת מצב הטופס ושם המסעדה מ-Google Sheets
     function checkSystemStatus() {
         fetch(SCRIPT_URL)
             .then(res => res.json())
             .then(data => {
                 updateFormUI(data.isOpen);
+                if (data.provider) {
+                    providerSubtitle.innerText = `היום השווארמה מגיעה מ${data.provider}`;
+                }
             })
             .catch(err => {
                 console.error('Error fetching status:', err);
@@ -267,7 +300,7 @@
             });
     }
 
-    // עדכון מצב המערכת ב-Google Sheets ע"י המנהל
+    // עדכון מצב המערכת ע"י המנהל
     orderToggle.addEventListener('change', function() {
         const isOpen = this.checked;
         updateFormUI(isOpen);
@@ -280,7 +313,7 @@
         });
     });
 
-    // צירוף מקשים נסתר להצגת פאנל מנהל (Ctrl + Alt + M)
+    // צירוף מקשים נסתר (Ctrl + Alt + M)
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.altKey && (e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
@@ -292,7 +325,7 @@
         document.getElementById('adminPanel').style.display = show ? 'block' : 'none';
     }
 
-    // שליחת הטופס
+    // שליחת הטופס ומעבר למסך אישור
     document.getElementById('shawarmaForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -322,16 +355,13 @@
             body: JSON.stringify(orderData)
         })
         .then(() => {
+            // מעבר למסך אישור נפרד
             document.getElementById('shawarmaForm').reset();
-            const successMsg = document.getElementById('success-message');
-            successMsg.style.display = 'block';
+            document.getElementById('formScreen').style.display = 'none';
+            document.getElementById('confirmationScreen').style.display = 'block';
             
             submitBtn.disabled = false;
             submitBtn.innerText = 'שלח הזמנה';
-
-            setTimeout(() => {
-                successMsg.style.display = 'none';
-            }, 6000);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -341,7 +371,12 @@
         });
     });
 
-    // הרצת בדיקת סטטוס מיד עם טעינת הדף
+    // חזרה למסך ההזמנה למקרה של ביצוע הזמנה נוספת
+    function resetToNewOrder() {
+        document.getElementById('confirmationScreen').style.display = 'none';
+        document.getElementById('formScreen').style.display = 'block';
+    }
+
     checkSystemStatus();
 </script>
 
