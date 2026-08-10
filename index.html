@@ -47,7 +47,7 @@
             border-bottom: 2px solid #f0f0f0;
             padding-bottom: 5px;
         }
-        input[type="text"], textarea, select {
+        input[type="text"], input[type="email"], textarea, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -184,7 +184,7 @@
             width: 100%;
             font-size: 14px;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 5px;
         }
         .close-admin {
             background-color: #6c757d;
@@ -317,9 +317,11 @@
         <button class="btn-admin-action" onclick="saveProviderName()">עדכן שם מקום</button>
     </div>
 
-    <!-- לחצן ייצוא הקובץ במייל -->
+    <!-- בחירת כתובת מייל לייצוא -->
     <div class="admin-section">
-        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח קובץ מלא במייל</button>
+        <label for="adminEmailInput">כתובת מייל לקבלת הקובץ:</label>
+        <input type="email" id="adminEmailInput" placeholder="example@gmail.com">
+        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח קובץ Excel מתוך ה-Gmail</button>
     </div>
 
     <button class="close-admin" onclick="toggleAdminPanel(false)">סגור חלונית</button>
@@ -336,6 +338,7 @@
     const newUserGroup = document.getElementById('newUserGroup');
     const newUserNameInput = document.getElementById('newUserName');
     const adminProviderInput = document.getElementById('adminProviderInput');
+    const adminEmailInput = document.getElementById('adminEmailInput');
 
     let globalUsersData = {};
 
@@ -436,7 +439,6 @@
         document.getElementById('drink').value = 'ללא שתייה';
     }
 
-    // עדכון מצב המנהל (פתוח/סגור)
     orderToggle.addEventListener('change', function() {
         const isOpen = this.checked;
         updateFormUI(isOpen);
@@ -449,7 +451,6 @@
         });
     });
 
-    // עדכון שם המקום (תא J2)
     function saveProviderName() {
         const newName = adminProviderInput.value.trim();
         if (!newName) return;
@@ -465,29 +466,37 @@
         });
     }
 
-    // שליחת קובץ מלא במייל
     function exportFileToEmail() {
+        const targetEmail = adminEmailInput.value.trim();
+        if (!targetEmail) {
+            alert('נא להזין כתובת מייל תקינה לקבלת הקובץ');
+            return;
+        }
+
         const btn = document.getElementById('exportBtn');
         btn.disabled = true;
-        btn.innerText = 'שולח קובץ...';
+        btn.innerText = 'שולח מתוך ה-Gmail...';
 
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'exportSpreadsheet' })
+            body: JSON.stringify({ 
+                action: 'exportSpreadsheet',
+                recipientEmail: targetEmail
+            })
         }).then(() => {
-            alert('קובץ ההזמנות המלא נשלח בהצלחה למייל שלך!');
+            alert(`קובץ ה-Excel יישלח בדקות הקרובות לכתובת: ${targetEmail}`);
             btn.disabled = false;
-            btn.innerText = '📧 שלח קובץ מלא במייל';
+            btn.innerText = '📧 שלח קובץ Excel מתוך ה-Gmail';
         }).catch(err => {
             alert('אירעה שגיאה בייצוא הקובץ');
             btn.disabled = false;
-            btn.innerText = '📧 שלח קובץ מלא במייל';
+            btn.innerText = '📧 שלח קובץ Excel מתוך ה-Gmail';
         });
     }
 
-    // צירוף מקשים נסתר Shift + Alt + M
+    // קישור מנהל: Shift + Alt + M
     document.addEventListener('keydown', function(e) {
         if (e.shiftKey && e.altKey && (e.code === 'KeyM' || e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
