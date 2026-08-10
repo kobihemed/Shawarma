@@ -102,7 +102,6 @@
             font-weight: bold;
         }
 
-        /* מסך אישור קבלת ההזמנה */
         #confirmationScreen {
             display: none;
             text-align: center;
@@ -129,7 +128,6 @@
             cursor: pointer;
         }
 
-        /* עיצוב חלונית מנהל נסתרת */
         #adminPanel {
             display: none;
             position: fixed;
@@ -163,12 +161,15 @@
             cursor: pointer;
             width: 100%;
         }
+        #newUserGroup {
+            display: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- מסך הטופס -->
     <div id="formScreen">
         <h1>ברוכים הבאים למסך הזמנת השווארמה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום השווארמה מגיעה מ...</div>
@@ -179,13 +180,20 @@
 
         <form id="shawarmaForm">
             <fieldset id="formFields" disabled>
-                <!-- שם המזמין -->
+                <!-- שם המזמין / בחירה מתוך רשימה -->
                 <div class="form-group">
-                    <label for="userName" class="section-label">שם מלא:</label>
-                    <input type="text" id="userName" name="userName" placeholder="הכנס את שמך" required>
+                    <label for="userSelect" class="section-label">שם המזמין:</label>
+                    <select id="userSelect" required>
+                        <option value="">-- בחר שם מהרשימה או צור חדש --</option>
+                        <option value="NEW_USER">+ משתמש חדש (הכנס שם חדש)</option>
+                    </select>
+
+                    <div id="newUserGroup">
+                        <input type="text" id="newUserName" placeholder="הכנס שם מלא חדש">
+                    </div>
                 </div>
 
-                <!-- בחירת סוג הלחם / הגשה -->
+                <!-- סוג הלחם -->
                 <div class="form-group">
                     <label class="section-label">סוג הלחם / הגשה:</label>
                     <div class="options-group">
@@ -196,7 +204,7 @@
                     </div>
                 </div>
 
-                <!-- בחירה נוספת: סוג הבשר -->
+                <!-- סוג הבשר -->
                 <div class="form-group">
                     <label class="section-label">סוג הבשר:</label>
                     <div class="options-group">
@@ -206,7 +214,7 @@
                     </div>
                 </div>
 
-                <!-- בחירה נוספת: סלטים ותוספות -->
+                <!-- תוספות וסלטים -->
                 <div class="form-group">
                     <label class="section-label">תוספות וסלטים בתוך המנה:</label>
                     <div class="options-group">
@@ -220,13 +228,13 @@
                     </div>
                 </div>
 
-                <!-- עמודת הערות -->
+                <!-- הערות -->
                 <div class="form-group">
                     <label for="notes" class="section-label">הערות מיוחדות:</label>
                     <textarea id="notes" name="notes" placeholder="הערות נוספות (למשל: בלי בצל, הרבה טחינה וכו')"></textarea>
                 </div>
 
-                <!-- בחירת שתייה -->
+                <!-- שתייה -->
                 <div class="form-group">
                     <label for="drink" class="section-label">שתייה:</label>
                     <select id="drink" name="drink">
@@ -272,6 +280,11 @@
     const formFields = document.getElementById('formFields');
     const closedMessage = document.getElementById('closed-message');
     const providerSubtitle = document.getElementById('providerSubtitle');
+    const userSelect = document.getElementById('userSelect');
+    const newUserGroup = document.getElementById('newUserGroup');
+    const newUserNameInput = document.getElementById('newUserName');
+
+    let globalUsersData = {};
 
     function updateFormUI(isOpen) {
         formFields.disabled = !isOpen;
@@ -284,7 +297,7 @@
         orderToggle.checked = isOpen;
     }
 
-    // בדיקת מצב הטופס ושם המסעדה מ-Google Sheets
+    // בדיקת סטטוס וטעינת רשימת המשתמשים
     function checkSystemStatus() {
         fetch(SCRIPT_URL)
             .then(res => res.json())
@@ -293,6 +306,12 @@
                 if (data.provider) {
                     providerSubtitle.innerText = `היום השווארמה מגיעה מ${data.provider}`;
                 }
+
+                // טעינת רשימת משתמשים נפתחת
+                if (data.users) {
+                    globalUsersData = data.users;
+                    populateUsersDropdown(data.users);
+                }
             })
             .catch(err => {
                 console.error('Error fetching status:', err);
@@ -300,7 +319,80 @@
             });
     }
 
-    // עדכון מצב המערכת ע"י המנהל
+    function populateUsersDropdown(users) {
+        // שמירת 2 האפשרויות הראשונות (ריק + משתמש חדש)
+        userSelect.innerHTML = `
+            <option value="">-- בחר שם מהרשימה או צור חדש --</option>
+            <option value="NEW_USER">+ משתמש חדש (הכנס שם חדש)</option>
+        `;
+
+        Object.keys(users).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.innerText = name;
+            userSelect.appendChild(opt);
+        });
+    }
+
+    // בעת בחירת משתמש מהרשימה
+    userSelect.addEventListener('change', function() {
+        const val = this.value;
+
+        if (val === 'NEW_USER') {
+            newUserGroup.style.display = 'block';
+            newUserNameInput.required = true;
+            resetFormOptions();
+        } else if (val && globalUsersData[val]) {
+            newUserGroup.style.display = 'none';
+            newUserNameInput.required = false;
+            newUserNameInput.value = '';
+            
+            // מילוי אוטומטי של ההזמנה הקודמת של המשתמש שנבחר
+            loadUserOrder(globalUsersData[val]);
+        } else {
+            newUserGroup.style.display = 'none';
+            newUserNameInput.required = false;
+            resetFormOptions();
+        }
+    });
+
+    function loadUserOrder(userData) {
+        // בחירת לחם
+        if (userData.bread) {
+            const breadInput = document.querySelector(`input[name="bread"][value="${userData.bread}"]`);
+            if (breadInput) breadInput.checked = true;
+        }
+
+        // בחירת בשר
+        if (userData.meat) {
+            const meatInput = document.querySelector(`input[name="meat"][value="${userData.meat}"]`);
+            if (meatInput) meatInput.checked = true;
+        }
+
+        // בחירת תוספות
+        document.querySelectorAll('input[name="toppings"]').forEach(cb => { cb.checked = false; });
+        if (userData.toppings) {
+            const toppingsArr = userData.toppings.split(',').map(s => s.trim());
+            toppingsArr.forEach(topping => {
+                const cb = document.querySelector(`input[name="toppings"][value="${topping}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+
+        // הערות ושתייה
+        document.getElementById('notes').value = userData.notes || '';
+        document.getElementById('drink').value = userData.drink || 'ללא שתייה';
+    }
+
+    function resetFormOptions() {
+        document.querySelectorAll('input[name="bread"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="meat"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="toppings"]').forEach(cb => cb.checked = false);
+        document.getElementById('notes').value = '';
+        document.getElementById('drink').value = 'ללא שתייה';
+    }
+
+    // עדכון מצב המנהל
     orderToggle.addEventListener('change', function() {
         const isOpen = this.checked;
         updateFormUI(isOpen);
@@ -325,9 +417,19 @@
         document.getElementById('adminPanel').style.display = show ? 'block' : 'none';
     }
 
-    // שליחת הטופס ומעבר למסך אישור
+    // שליחת הטופס
     document.getElementById('shawarmaForm').addEventListener('submit', function(e) {
         e.preventDefault();
+
+        let finalName = userSelect.value;
+        if (finalName === 'NEW_USER') {
+            finalName = newUserNameInput.value.trim();
+        }
+
+        if (!finalName) {
+            alert('נא לבחור או להזין שם מלא');
+            return;
+        }
 
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
@@ -340,7 +442,7 @@
         });
 
         const orderData = {
-            name: formData.get('userName'),
+            name: finalName,
             bread: formData.get('bread'),
             meat: formData.get('meat'),
             toppings: selectedToppings.join(', '),
@@ -355,8 +457,8 @@
             body: JSON.stringify(orderData)
         })
         .then(() => {
-            // מעבר למסך אישור נפרד
             document.getElementById('shawarmaForm').reset();
+            newUserGroup.style.display = 'none';
             document.getElementById('formScreen').style.display = 'none';
             document.getElementById('confirmationScreen').style.display = 'block';
             
@@ -371,10 +473,10 @@
         });
     });
 
-    // חזרה למסך ההזמנה למקרה של ביצוע הזמנה נוספת
     function resetToNewOrder() {
         document.getElementById('confirmationScreen').style.display = 'none';
         document.getElementById('formScreen').style.display = 'block';
+        checkSystemStatus();
     }
 
     checkSystemStatus();
