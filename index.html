@@ -79,7 +79,7 @@
         .btn-submit:hover {
             background-color: #c9302c;
         }
-        .btn-submit:disabled, input:disabled, select:disabled, textarea:disabled, fieldset:disabled {
+        .btn-submit:disabled, fieldset:disabled {
             background-color: #e9ecef;
             cursor: not-allowed;
             opacity: 0.7;
@@ -238,30 +238,40 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
 
-    // ניהול מצב הטופס (פתוח/סגור)
     const orderToggle = document.getElementById('orderToggle');
     const formFields = document.getElementById('formFields');
     const closedMessage = document.getElementById('closed-message');
 
-    function updateFormState(isOpen) {
+    function updateFormUI(isOpen) {
         formFields.disabled = !isOpen;
         closedMessage.style.display = isOpen ? 'none' : 'block';
-        localStorage.setItem('ordersOpen', isOpen ? 'true' : 'false');
-    }
-
-    // טעינת מצב נשמר
-    const savedState = localStorage.getItem('ordersOpen');
-    if (savedState !== null) {
-        const isOpen = savedState === 'true';
         orderToggle.checked = isOpen;
-        updateFormState(isOpen);
     }
 
+    // בדיקת מצב הטופס מול Google Sheets בעת טעינת הדף
+    function checkSystemStatus() {
+        fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                updateFormUI(data.isOpen);
+            })
+            .catch(err => console.error('Error fetching status:', err));
+    }
+
+    // עדכון מצב המערכת ב-Google Sheets ע"י המנהל
     orderToggle.addEventListener('change', function() {
-        updateFormState(this.checked);
+        const isOpen = this.checked;
+        updateFormUI(isOpen);
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'toggleStatus', isOpen: isOpen })
+        });
     });
 
-    // זיהוי מקשים נסתר להצגת פאנל מנהל (Ctrl + Alt + M)
+    // צירוף מקשים נסתר להצגת פאנל מנהל (Ctrl + Alt + M)
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.altKey && (e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
@@ -273,7 +283,7 @@
         document.getElementById('adminPanel').style.display = show ? 'block' : 'none';
     }
 
-    // טיפול בשליחת הטופס
+    // שליחת הטופס
     document.getElementById('shawarmaForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -321,6 +331,9 @@
             submitBtn.innerText = 'שלח הזמנה';
         });
     });
+
+    // בדיקת סטטוס התחלתית
+    checkSystemStatus();
 </script>
 
 </body>
