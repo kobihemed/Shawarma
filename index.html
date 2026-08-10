@@ -96,7 +96,7 @@
             line-height: 1.5;
         }
         #closed-message {
-            display: none;
+            display: block; /* ברירת מחדל: מוצג כסגור */
             margin-bottom: 20px;
             padding: 15px;
             background-color: #f8d7da;
@@ -148,11 +148,12 @@
     <h1>נא בחר את השווארמה שתרצה</h1>
 
     <div id="closed-message">
-        🚫 המערכת סגורה כרגע לקבלת הזמנות חדשות.
+        ⏳ בודק זמינות מערכת...
     </div>
 
     <form id="shawarmaForm">
-        <fieldset id="formFields">
+        <!-- ברירת מחדל: הטופס נעול מראש בזמן הבדיקה -->
+        <fieldset id="formFields" disabled>
             <!-- שם המזמין -->
             <div class="form-group">
                 <label for="userName" class="section-label">שם מלא:</label>
@@ -230,7 +231,7 @@
     <h3>ממשק מנהל מערכת</h3>
     <div class="toggle-container">
         <span>קבלת הזמנות:</span>
-        <input type="checkbox" id="orderToggle" checked>
+        <input type="checkbox" id="orderToggle">
     </div>
     <button class="close-admin" onclick="toggleAdminPanel(false)">סגור חלונית</button>
 </div>
@@ -244,18 +245,26 @@
 
     function updateFormUI(isOpen) {
         formFields.disabled = !isOpen;
-        closedMessage.style.display = isOpen ? 'none' : 'block';
+        if (isOpen) {
+            closedMessage.style.display = 'none';
+        } else {
+            closedMessage.style.display = 'block';
+            closedMessage.innerHTML = '🚫 המערכת סגורה כרגע לקבלת הזמנות חדשות.';
+        }
         orderToggle.checked = isOpen;
     }
 
-    // בדיקת מצב הטופס מול Google Sheets בעת טעינת הדף
+    // בדיקת מצב הטופס מול Google Sheets
     function checkSystemStatus() {
         fetch(SCRIPT_URL)
             .then(res => res.json())
             .then(data => {
                 updateFormUI(data.isOpen);
             })
-            .catch(err => console.error('Error fetching status:', err));
+            .catch(err => {
+                console.error('Error fetching status:', err);
+                closedMessage.innerHTML = '🚫 אירעה שגיאה בבדיקת סטטוס המערכת.';
+            });
     }
 
     // עדכון מצב המערכת ב-Google Sheets ע"י המנהל
@@ -332,7 +341,7 @@
         });
     });
 
-    // בדיקת סטטוס התחלתית
+    // הרצת בדיקת סטטוס מיד עם טעינת הדף
     checkSystemStatus();
 </script>
 
