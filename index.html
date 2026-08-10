@@ -128,6 +128,7 @@
             cursor: pointer;
         }
 
+        /* עיצוב חלונית מנהל מורחבת */
         #adminPanel {
             display: none;
             position: fixed;
@@ -139,18 +140,51 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             z-index: 1000;
-            width: 300px;
+            width: 320px;
             border: 2px solid #333;
         }
         #adminPanel h3 {
             margin-top: 0;
             color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 8px;
+        }
+        .admin-section {
+            margin-bottom: 15px;
+        }
+        .admin-section label {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
         }
         .toggle-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 20px 0;
+        }
+        .btn-admin-action {
+            background-color: #0275d8;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .btn-admin-export {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
         }
         .close-admin {
             background-color: #6c757d;
@@ -160,6 +194,7 @@
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            margin-top: 15px;
         }
         #newUserGroup {
             display: none;
@@ -266,10 +301,27 @@
 <!-- חלונית ניהול נסתרת -->
 <div id="adminPanel">
     <h3>ממשק מנהל מערכת</h3>
-    <div class="toggle-container">
-        <span>קבלת הזמנות:</span>
-        <input type="checkbox" id="orderToggle">
+    
+    <!-- מתג סגירה/פתיחה -->
+    <div class="admin-section">
+        <div class="toggle-container">
+            <span>קבלת הזמנות:</span>
+            <input type="checkbox" id="orderToggle">
+        </div>
     </div>
+
+    <!-- עדכון שם המקום (תא J2) -->
+    <div class="admin-section">
+        <label for="adminProviderInput">עדכון שם המקום (תא J2):</label>
+        <input type="text" id="adminProviderInput" placeholder="הכנס שם מקום חדש">
+        <button class="btn-admin-action" onclick="saveProviderName()">עדכן שם מקום</button>
+    </div>
+
+    <!-- לחצן ייצוא הקובץ במייל -->
+    <div class="admin-section">
+        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח קובץ מלא במייל</button>
+    </div>
+
     <button class="close-admin" onclick="toggleAdminPanel(false)">סגור חלונית</button>
 </div>
 
@@ -283,6 +335,7 @@
     const userSelect = document.getElementById('userSelect');
     const newUserGroup = document.getElementById('newUserGroup');
     const newUserNameInput = document.getElementById('newUserName');
+    const adminProviderInput = document.getElementById('adminProviderInput');
 
     let globalUsersData = {};
 
@@ -304,6 +357,7 @@
                 updateFormUI(data.isOpen);
                 if (data.provider) {
                     providerSubtitle.innerText = `היום השווארמה מגיעה מ${data.provider}`;
+                    adminProviderInput.value = data.provider;
                 }
 
                 if (data.users) {
@@ -382,6 +436,7 @@
         document.getElementById('drink').value = 'ללא שתייה';
     }
 
+    // עדכון מצב המנהל (פתוח/סגור)
     orderToggle.addEventListener('change', function() {
         const isOpen = this.checked;
         updateFormUI(isOpen);
@@ -394,7 +449,45 @@
         });
     });
 
-    // צירוף מקשים נסתר מעודכן לחלוטין: Shift + Alt + M (עובד בעברית/אנגלית בכל דפדפן)
+    // עדכון שם המקום (תא J2)
+    function saveProviderName() {
+        const newName = adminProviderInput.value.trim();
+        if (!newName) return;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'updateProvider', provider: newName })
+        }).then(() => {
+            providerSubtitle.innerText = `היום השווארמה מגיעה מ${newName}`;
+            alert('שם המקום עודכן בהצלחה!');
+        });
+    }
+
+    // שליחת קובץ מלא במייל
+    function exportFileToEmail() {
+        const btn = document.getElementById('exportBtn');
+        btn.disabled = true;
+        btn.innerText = 'שולח קובץ...';
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'exportSpreadsheet' })
+        }).then(() => {
+            alert('קובץ ההזמנות המלא נשלח בהצלחה למייל שלך!');
+            btn.disabled = false;
+            btn.innerText = '📧 שלח קובץ מלא במייל';
+        }).catch(err => {
+            alert('אירעה שגיאה בייצוא הקובץ');
+            btn.disabled = false;
+            btn.innerText = '📧 שלח קובץ מלא במייל';
+        });
+    }
+
+    // צירוף מקשים נסתר Shift + Alt + M
     document.addEventListener('keydown', function(e) {
         if (e.shiftKey && e.altKey && (e.code === 'KeyM' || e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
