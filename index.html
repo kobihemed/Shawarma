@@ -180,7 +180,7 @@
 
         <form id="shawarmaForm">
             <fieldset id="formFields" disabled>
-                <!-- שם המזמין / בחירה מתוך רשימה -->
+                <!-- שם המזמין -->
                 <div class="form-group">
                     <label for="userSelect" class="section-label">שם המזמין:</label>
                     <select id="userSelect" required>
@@ -214,7 +214,7 @@
                     </div>
                 </div>
 
-                <!-- תוספות וסלטים -->
+                <!-- תוספות -->
                 <div class="form-group">
                     <label class="section-label">תוספות וסלטים בתוך המנה:</label>
                     <div class="options-group">
@@ -255,7 +255,7 @@
         </form>
     </div>
 
-    <!-- מסך אישור לאחר שליחה -->
+    <!-- מסך אישור -->
     <div id="confirmationScreen">
         <h2>🎉 ההזמנה נקלטה בהצלחה!</h2>
         <p>ההזמנה נשלחה למרכז ההזמנות <strong>"LalushMobile"</strong> וצפויה להיות מוגשת עד השעה <strong>12:00</strong></p>
@@ -297,7 +297,6 @@
         orderToggle.checked = isOpen;
     }
 
-    // בדיקת סטטוס וטעינת רשימת המשתמשים
     function checkSystemStatus() {
         fetch(SCRIPT_URL)
             .then(res => res.json())
@@ -307,7 +306,6 @@
                     providerSubtitle.innerText = `היום השווארמה מגיעה מ${data.provider}`;
                 }
 
-                // טעינת רשימת משתמשים נפתחת
                 if (data.users) {
                     globalUsersData = data.users;
                     populateUsersDropdown(data.users);
@@ -320,7 +318,6 @@
     }
 
     function populateUsersDropdown(users) {
-        // שמירת 2 האפשרויות הראשונות (ריק + משתמש חדש)
         userSelect.innerHTML = `
             <option value="">-- בחר שם מהרשימה או צור חדש --</option>
             <option value="NEW_USER">+ משתמש חדש (הכנס שם חדש)</option>
@@ -334,7 +331,6 @@
         });
     }
 
-    // בעת בחירת משתמש מהרשימה
     userSelect.addEventListener('change', function() {
         const val = this.value;
 
@@ -346,8 +342,6 @@
             newUserGroup.style.display = 'none';
             newUserNameInput.required = false;
             newUserNameInput.value = '';
-            
-            // מילוי אוטומטי של ההזמנה הקודמת של המשתמש שנבחר
             loadUserOrder(globalUsersData[val]);
         } else {
             newUserGroup.style.display = 'none';
@@ -357,19 +351,16 @@
     });
 
     function loadUserOrder(userData) {
-        // בחירת לחם
         if (userData.bread) {
             const breadInput = document.querySelector(`input[name="bread"][value="${userData.bread}"]`);
             if (breadInput) breadInput.checked = true;
         }
 
-        // בחירת בשר
         if (userData.meat) {
             const meatInput = document.querySelector(`input[name="meat"][value="${userData.meat}"]`);
             if (meatInput) meatInput.checked = true;
         }
 
-        // בחירת תוספות
         document.querySelectorAll('input[name="toppings"]').forEach(cb => { cb.checked = false; });
         if (userData.toppings) {
             const toppingsArr = userData.toppings.split(',').map(s => s.trim());
@@ -379,7 +370,6 @@
             });
         }
 
-        // הערות ושתייה
         document.getElementById('notes').value = userData.notes || '';
         document.getElementById('drink').value = userData.drink || 'ללא שתייה';
     }
@@ -392,7 +382,6 @@
         document.getElementById('drink').value = 'ללא שתייה';
     }
 
-    // עדכון מצב המנהל
     orderToggle.addEventListener('change', function() {
         const isOpen = this.checked;
         updateFormUI(isOpen);
@@ -405,9 +394,9 @@
         });
     });
 
-    // צירוף מקשים נסתר (Ctrl + Alt + M)
+    // צירוף מקשים נסתר מעודכן לחלוטין: Shift + Alt + M (עובד בעברית/אנגלית בכל דפדפן)
     document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.altKey && (e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
+        if (e.shiftKey && e.altKey && (e.code === 'KeyM' || e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
             toggleAdminPanel(true);
         }
@@ -417,7 +406,6 @@
         document.getElementById('adminPanel').style.display = show ? 'block' : 'none';
     }
 
-    // שליחת הטופס
     document.getElementById('shawarmaForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
