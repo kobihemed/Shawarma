@@ -322,9 +322,9 @@
     <div class="admin-section">
         <label for="adminProviderSelect">עדכון מקום ההזמנה (תא J2):</label>
         <select id="adminProviderSelect">
+            <option value="הרצל 50">הרצל 50</option>
+            <option value="הפינה הלבנה">הפינה הלבנה</option>
             <option value="דונר">דונר</option>
-            <option value="שווארמה שאוויל">שווארמה שאוויל</option>
-            <option value="שווארמת הסולטן">שווארמת הסולטן</option>
         </select>
         <button class="btn-admin-action" onclick="saveProviderName()">עדכן מקום הזמנה</button>
     </div>
@@ -343,21 +343,21 @@
 
     // מילוי והגדרת סוגי הבשרים לכל מסעדה
     const restaurantMeats = {
-        "דונר": [
+        "הרצל 50": [
             { label: "עגל", value: "עגל" },
             { label: "הודו", value: "הודו" },
             { label: "מעורב (עגל + הודו)", value: "מעורב" }
         ],
-        "שווארמה שאוויל": [
+        "הפינה הלבנה": [
             { label: "פרגית", value: "פרגית" },
             { label: "עגל", value: "עגל" },
             { label: "מעורב (פרגית + עגל)", value: "מעורב" }
         ],
-        "שווארמת הסולטן": [
+        "דונר": [
             { label: "כבש", value: "כבש" },
             { label: "פרגית", value: "פרגית" },
-            { label: "הודו", value: "הודו" },
-            { label: "מעורב (כבש + הודו)", value: "מעורב" }
+            { label: "הודו", value: "דנוור" },
+            { label: "מעורב", value: "מעורב" }
         ]
     };
 
