@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הזמנת שווארמה</title>
+    <title>מערכת הזמנות מרובה קטגוריות</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -38,7 +38,7 @@
         .header-image {
             width: 100%;
             height: auto;
-            max-height: 250px;
+            max-height: 220px;
             object-fit: contain;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -110,7 +110,6 @@
             text-align: center;
             font-weight: bold;
         }
-
         #confirmationScreen {
             display: none;
             text-align: center;
@@ -136,8 +135,6 @@
             font-size: 16px;
             cursor: pointer;
         }
-
-        /* עיצוב חלונית מנהל */
         #adminPanel {
             display: none;
             position: fixed;
@@ -215,10 +212,10 @@
 
 <div class="container">
     <div id="formScreen">
-        <h1>ברוכים הבאים למסך הזמנת השווארמה שלנו!</h1>
-        <div class="subtitle" id="providerSubtitle">היום השווארמה מגיעה מ...</div>
+        <h1 id="mainTitle">ברוכים הבאים למערכת ההזמנות!</h1>
+        <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <img src="Sha.png" alt="שווארמה" class="header-image">
+        <img src="Sha.png" id="headerImg" alt="אוכל" class="header-image">
 
         <div id="closed-message">
             ⏳ בודק זמינות מערכת...
@@ -239,43 +236,28 @@
                     </div>
                 </div>
 
-                <!-- סוג הלחם -->
+                <!-- סוג הלחם / הבסיס -->
                 <div class="form-group">
-                    <label class="section-label">סוג הלחם / הגשה:</label>
-                    <div class="options-group">
-                        <label class="radio-item"><input type="radio" name="bread" value="פיתה" required> פיתה</label>
-                        <label class="radio-item"><input type="radio" name="bread" value="לאפה"> לאפה</label>
-                        <label class="radio-item"><input type="radio" name="bread" value="באגט"> באגט</label>
-                        <label class="radio-item"><input type="radio" name="bread" value="צלחת"> צלחת</label>
-                    </div>
+                    <label class="section-label" id="breadLabel">סוג הלחם / הגשה:</label>
+                    <div class="options-group" id="breadOptionsGroup"></div>
                 </div>
 
-                <!-- סוג הבשר - מתעדכן דינמית לפי המסעדה שנבחרה -->
+                <!-- סוג הבשר / המנה הראשית -->
                 <div class="form-group">
-                    <label class="section-label">סוג הבשר:</label>
-                    <div class="options-group" id="meatOptionsGroup">
-                        <!-- ייטען אוטומטית לפי המסעדה -->
-                    </div>
+                    <label class="section-label" id="meatLabel">סוג המנה / הבשר:</label>
+                    <div class="options-group" id="meatOptionsGroup"></div>
                 </div>
 
                 <!-- תוספות -->
                 <div class="form-group">
-                    <label class="section-label">תוספות וסלטים בתוך המנה:</label>
-                    <div class="options-group">
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="חומוס"> חומוס</label>
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="טחינה"> טחינה</label>
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="סלט ערבי"> סלט ערבי</label>
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="חריף"> חריף</label>
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="חמוצים"> חמוצים</label>
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="צ'יפס בתוך המנה"> צ'יפס בתוך המנה</label>
-                        <label class="checkbox-item"><input type="checkbox" name="toppings" value="צ'יפס בצד"> צ'יפס בצד</label>
-                    </div>
+                    <label class="section-label" id="toppingsLabel">תוספות וסלטים:</label>
+                    <div class="options-group" id="toppingsOptionsGroup"></div>
                 </div>
 
                 <!-- הערות -->
                 <div class="form-group">
                     <label for="notes" class="section-label">הערות מיוחדות:</label>
-                    <textarea id="notes" name="notes" placeholder="הערות נוספות (למשל: בלי בצל, הרבה טחינה וכו')"></textarea>
+                    <textarea id="notes" name="notes" placeholder="הערות נוספות (בלי בצל, הרבה רוטב וכו')"></textarea>
                 </div>
 
                 <!-- שתייה -->
@@ -307,7 +289,7 @@
     </div>
 </div>
 
-<!-- חלונית ניהול נסתרת -->
+<!-- חלונית ניהול נסתרת משודרגת -->
 <div id="adminPanel">
     <h3>ממשק מנהל מערכת</h3>
     
@@ -318,21 +300,25 @@
         </div>
     </div>
 
-    <!-- בחירת מסעדה מתוך רשימה מוגדרת מראש -->
     <div class="admin-section">
-        <label for="adminProviderSelect">עדכון מקום ההזמנה (תא J2):</label>
-        <select id="adminProviderSelect">
-            <option value="הרצל 50">הרצל 50</option>
-            <option value="הפינה הלבנה">הפינה הלבנה</option>
-            <option value="דונר">דונר</option>
+        <label for="adminCategorySelect">סוג האוכל הפעיל:</label>
+        <select id="adminCategorySelect" onchange="onAdminCategoryChange()">
+            <option value="שווארמה">שווארמה</option>
+            <option value="פיצה">פיצה</option>
+            <option value="המבורגר">המבורגר</option>
         </select>
-        <button class="btn-admin-action" onclick="saveProviderName()">עדכן מקום הזמנה</button>
     </div>
 
     <div class="admin-section">
-        <label for="adminEmailInput">כתובת מייל לקבלת הקובץ:</label>
+        <label for="adminProviderSelect">שם המסעדה להיום:</label>
+        <select id="adminProviderSelect"></select>
+        <button class="btn-admin-action" onclick="saveCategoryAndProvider()">עדכן הגדרות פעילות</button>
+    </div>
+
+    <div class="admin-section">
+        <label for="adminEmailInput">כתובת מייל לקבלת הקובץ המלא:</label>
         <input type="email" id="adminEmailInput" placeholder="example@gmail.com">
-        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח קובץ Excel מתוך ה-Gmail</button>
+        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח ריכוז Excel מרובה טאבים</button>
     </div>
 
     <button class="close-admin" onclick="toggleAdminPanel(false)">סגור חלונית</button>
@@ -341,62 +327,107 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
 
-    // מילוי והגדרת סוגי הבשרים לכל מסעדה
-    const restaurantMeats = {
-        "הרצל 50": [
-            { label: "עגל", value: "עגל" },
-            { label: "הודו", value: "הודו" },
-            { label: "מעורב (עגל + הודו)", value: "מעורב" }
-        ],
-        "הפינה הלבנה": [
-            { label: "פרגית", value: "פרגית" },
-            { label: "עגל", value: "עגל" },
-            { label: "מעורב (פרגית + עגל)", value: "מעורב" }
-        ],
-        "דונר": [
-            { label: "כבש", value: "כבש" },
-            { label: "פרגית", value: "פרגית" },
-            { label: "דנוור", value: "דנוור" },
-            { label: "מעורב", value: "מעורב" }
-        ]
+    // הגדרת קטגוריות, מסעדות ותוספות דינמיות
+    const categoriesData = {
+        "שווארמה": {
+            title: "מסך הזמנת שווארמה",
+            breadLabel: "סוג הלחם / הגשה:",
+            breads: ["פיתה", "לאפה", "באגט", "צלחת"],
+            meatLabel: "סוג הבשר:",
+            providers: {
+                "דונר": ["עגל", "הודו", "מעורב (עגל + הודו)"],
+                "שווארמה שאוויל": ["פרגית", "עגל", "מעורב (פרגית + עגל)"],
+                "שווארמת הסולטן": ["כבש", "פרגית", "הודו", "מעורב (כבש + הודו)"]
+            },
+            toppingsLabel: "תוספות וסלטים:",
+            toppings: ["חומוס", "טחינה", "סלט ערבי", "חריף", "חמוצים", "צ'יפס בתוך המנה", "צ'יפס בצד"]
+        },
+        "פיצה": {
+            title: "מסך הזמנת פיצה",
+            breadLabel: "סוג הבצק:",
+            breads: ["בצק רגיל", "בצק דק", "בצק עבה", "קצוות גבינה"],
+            meatLabel: "גודל המגש:",
+            providers: {
+                "פיצה פרדו": ["אישי", "משפחתי", "ענק XL"],
+                "פיצה הוט": ["משפחתית קלאסית", "הטריפוניה", "קראנצ'יז"]
+            },
+            toppingsLabel: "תוספות על הפיצה:",
+            toppings: ["זיתים ירוקים", "זיתים שחורים", "פטריות", "בצל", "תירס", "עגבניות", "חריף"]
+        },
+        "המבורגר": {
+            title: "מסך הזמנת המבורגר",
+            breadLabel: "סוג הלחמנייה:",
+            breads: ["לחמנייה קלאסית", "לחמניית דגנים", "ללא לחמנייה (בצלחת)"],
+            meatLabel: "מידת עשייה ומשקל:",
+            providers: {
+                "בורגרסבאר": ["160 גרם - MW", "220 גרם - M", "220 גרם - MW", "300 גרם - WD"],
+                "מוזס": ["ארטבורגר 200 גרם", "קלאסי 150 גרם", "דאבל בורגר"]
+            },
+            toppingsLabel: "תוספות בתוך ההמבורגר:",
+            toppings: ["חסה", "עגבנייה", "מלפפון חמוץ", "בצל סגול", "ריבת בצל", "פטריית פורטובלו"]
+        }
     };
 
     const orderToggle = document.getElementById('orderToggle');
     const formFields = document.getElementById('formFields');
     const closedMessage = document.getElementById('closed-message');
     const providerSubtitle = document.getElementById('providerSubtitle');
+    const mainTitle = document.getElementById('mainTitle');
     const userSelect = document.getElementById('userSelect');
     const newUserGroup = document.getElementById('newUserGroup');
     const newUserNameInput = document.getElementById('newUserName');
+    const adminCategorySelect = document.getElementById('adminCategorySelect');
     const adminProviderSelect = document.getElementById('adminProviderSelect');
     const adminEmailInput = document.getElementById('adminEmailInput');
-    const meatOptionsGroup = document.getElementById('meatOptionsGroup');
 
     let globalUsersData = {};
 
-    // עדכון סוגי הבשר בדף לפי המסעדה שנבחרה
-    function updateMeatOptions(restaurantName) {
-        const meats = restaurantMeats[restaurantName] || restaurantMeats["דונר"];
-        meatOptionsGroup.innerHTML = '';
+    function renderDynamicForm(categoryName, providerName) {
+        const cat = categoriesData[categoryName] || categoriesData["שווארמה"];
+        mainTitle.innerText = cat.title;
+        providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
 
-        meats.forEach((meat, index) => {
-            const label = document.createElement('label');
-            label.className = 'radio-item';
-            
-            const isReq = index === 0 ? 'required' : '';
-            label.innerHTML = `<input type="radio" name="meat" value="${meat.value}" ${isReq}> ${meat.label}`;
-            meatOptionsGroup.appendChild(label);
+        // עדכון שדות לחם/בסיס
+        document.getElementById('breadLabel').innerText = cat.breadLabel;
+        const breadGroup = document.getElementById('breadOptionsGroup');
+        breadGroup.innerHTML = '';
+        cat.breads.forEach((item, index) => {
+            const req = index === 0 ? 'required' : '';
+            breadGroup.innerHTML += `<label class="radio-item"><input type="radio" name="bread" value="${item}" ${req}> ${item}</label>`;
+        });
+
+        // עדכון שדות מנה ראשית/בשר
+        document.getElementById('meatLabel').innerText = cat.meatLabel;
+        const meatGroup = document.getElementById('meatOptionsGroup');
+        meatGroup.innerHTML = '';
+        const meatsList = (cat.providers && cat.providers[providerName]) ? cat.providers[providerName] : Object.values(cat.providers)[0];
+        meatsList.forEach((item, index) => {
+            const req = index === 0 ? 'required' : '';
+            meatGroup.innerHTML += `<label class="radio-item"><input type="radio" name="meat" value="${item}" ${req}> ${item}</label>`;
+        });
+
+        // עדכון תוספות
+        document.getElementById('toppingsLabel').innerText = cat.toppingsLabel;
+        const toppingsGroup = document.getElementById('toppingsOptionsGroup');
+        toppingsGroup.innerHTML = '';
+        cat.toppings.forEach(item => {
+            toppingsGroup.innerHTML += `<label class="checkbox-item"><input type="checkbox" name="toppings" value="${item}"> ${item}</label>`;
+        });
+    }
+
+    function onAdminCategoryChange() {
+        const catName = adminCategorySelect.value;
+        const cat = categoriesData[catName];
+        adminProviderSelect.innerHTML = '';
+        Object.keys(cat.providers).forEach(prov => {
+            adminProviderSelect.innerHTML += `<option value="${prov}">${prov}</option>`;
         });
     }
 
     function updateFormUI(isOpen) {
         formFields.disabled = !isOpen;
-        if (isOpen) {
-            closedMessage.style.display = 'none';
-        } else {
-            closedMessage.style.display = 'block';
-            closedMessage.innerHTML = '🚫 המערכת סגורה כרגע לקבלת הזמנות חדשות.';
-        }
+        closedMessage.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) closedMessage.innerHTML = '🚫 המערכת סגורה כרגע לקבלת הזמנות חדשות.';
         orderToggle.checked = isOpen;
     }
 
@@ -405,11 +436,14 @@
             .then(res => res.json())
             .then(data => {
                 updateFormUI(data.isOpen);
-                const currentProvider = data.provider || "דונר";
-                
-                providerSubtitle.innerText = `היום השווארמה מגיעה מ${currentProvider}`;
-                adminProviderSelect.value = currentProvider;
-                updateMeatOptions(currentProvider);
+                const activeCat = data.activeCategory || "שווארמה";
+                const activeProv = data.provider || "דונר";
+
+                adminCategorySelect.value = activeCat;
+                onAdminCategoryChange();
+                adminProviderSelect.value = activeProv;
+
+                renderDynamicForm(activeCat, activeProv);
 
                 if (data.users) {
                     globalUsersData = data.users;
@@ -427,18 +461,13 @@
             <option value="">-- בחר שם מהרשימה או צור חדש --</option>
             <option value="NEW_USER">+ משתמש חדש (הכנס שם חדש)</option>
         `;
-
         Object.keys(users).forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.innerText = name;
-            userSelect.appendChild(opt);
+            userSelect.innerHTML += `<option value="${name}">${name}</option>`;
         });
     }
 
     userSelect.addEventListener('change', function() {
         const val = this.value;
-
         if (val === 'NEW_USER') {
             newUserGroup.style.display = 'block';
             newUserNameInput.required = true;
@@ -457,24 +486,20 @@
 
     function loadUserOrder(userData) {
         if (userData.bread) {
-            const breadInput = document.querySelector(`input[name="bread"][value="${userData.bread}"]`);
-            if (breadInput) breadInput.checked = true;
+            const el = document.querySelector(`input[name="bread"][value="${userData.bread}"]`);
+            if (el) el.checked = true;
         }
-
         if (userData.meat) {
-            const meatInput = document.querySelector(`input[name="meat"][value="${userData.meat}"]`);
-            if (meatInput) meatInput.checked = true;
+            const el = document.querySelector(`input[name="meat"][value="${userData.meat}"]`);
+            if (el) el.checked = true;
         }
-
         document.querySelectorAll('input[name="toppings"]').forEach(cb => { cb.checked = false; });
         if (userData.toppings) {
-            const toppingsArr = userData.toppings.split(',').map(s => s.trim());
-            toppingsArr.forEach(topping => {
+            userData.toppings.split(',').map(s => s.trim()).forEach(topping => {
                 const cb = document.querySelector(`input[name="toppings"][value="${topping}"]`);
                 if (cb) cb.checked = true;
             });
         }
-
         document.getElementById('notes').value = userData.notes || '';
         document.getElementById('drink').value = userData.drink || 'ללא שתייה';
     }
@@ -490,7 +515,6 @@
     orderToggle.addEventListener('change', function() {
         const isOpen = this.checked;
         updateFormUI(isOpen);
-
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -499,19 +523,22 @@
         });
     });
 
-    // שמירת המסעדה הנבחרת
-    function saveProviderName() {
-        const newProvider = adminProviderSelect.value;
+    function saveCategoryAndProvider() {
+        const selectedCat = adminCategorySelect.value;
+        const selectedProv = adminProviderSelect.value;
 
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'updateProvider', provider: newProvider })
+            body: JSON.stringify({ 
+                action: 'updateCategoryAndProvider', 
+                category: selectedCat,
+                provider: selectedProv 
+            })
         }).then(() => {
-            providerSubtitle.innerText = `היום השווארמה מגיעה מ${newProvider}`;
-            updateMeatOptions(newProvider);
-            alert('מקום ההזמנה וסוגי הבשר עודכנו בהצלחה!');
+            renderDynamicForm(selectedCat, selectedProv);
+            alert('קטגוריית המזון והמסעדה עודכנו בהצלחה!');
         });
     }
 
@@ -524,7 +551,7 @@
 
         const btn = document.getElementById('exportBtn');
         btn.disabled = true;
-        btn.innerText = 'שולח מתוך ה-Gmail...';
+        btn.innerText = 'שולח ריכוז מלא מתוך ה-Gmail...';
 
         fetch(SCRIPT_URL, {
             method: 'POST',
@@ -535,17 +562,17 @@
                 recipientEmail: targetEmail
             })
         }).then(() => {
-            alert(`קובץ ה-Excel יישלח בדקות הקרובות לכתובת: ${targetEmail}`);
+            alert(`קובץ ה-Excel המלא (כל הטאבים) יישלח לכתובת: ${targetEmail}`);
             btn.disabled = false;
-            btn.innerText = '📧 שלח קובץ Excel מתוך ה-Gmail';
+            btn.innerText = '📧 שלח ריכוז Excel מרובה טאבים';
         }).catch(err => {
             alert('אירעה שגיאה בייצוא הקובץ');
             btn.disabled = false;
-            btn.innerText = '📧 שלח קובץ Excel מתוך ה-Gmail';
+            btn.innerText = '📧 שלח ריכוז Excel מרובה טאבים';
         });
     }
 
-    // מקש נסתר: Shift + Alt + M
+    // צירוף מקשים נסתר Shift + Alt + M
     document.addEventListener('keydown', function(e) {
         if (e.shiftKey && e.altKey && (e.code === 'KeyM' || e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
