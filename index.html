@@ -236,15 +236,15 @@
                     </div>
                 </div>
 
-                <!-- סוג הלחם / הבסיס -->
+                <!-- סוג הלחם / הלחמנייה / הפיתות -->
                 <div class="form-group">
                     <label class="section-label" id="breadLabel">סוג הלחם / הגשה:</label>
                     <div class="options-group" id="breadOptionsGroup"></div>
                 </div>
 
-                <!-- סוג הבשר / המנה הראשית -->
+                <!-- סוג המנה / החומוס / הבשר -->
                 <div class="form-group">
-                    <label class="section-label" id="meatLabel">סוג המנה / הבשר:</label>
+                    <label class="section-label" id="meatLabel">סוג המנה:</label>
                     <div class="options-group" id="meatOptionsGroup"></div>
                 </div>
 
@@ -257,7 +257,7 @@
                 <!-- הערות -->
                 <div class="form-group">
                     <label for="notes" class="section-label">הערות מיוחדות:</label>
-                    <textarea id="notes" name="notes" placeholder="הערות נוספות (בלי בצל, הרבה רוטב וכו')"></textarea>
+                    <textarea id="notes" name="notes" placeholder="הערות נוספות (בלי פטרוזיליה, הרבה טטבילה וכו')"></textarea>
                 </div>
 
                 <!-- שתייה -->
@@ -303,8 +303,9 @@
     <div class="admin-section">
         <label for="adminCategorySelect">סוג האוכל הפעיל:</label>
         <select id="adminCategorySelect" onchange="onAdminCategoryChange()">
-            <option value="שווארמה">שווארמה</option>
             <option value="חומוס">חומוס</option>
+            <option value="שווארמה">שווארמה</option>
+            <option value="פיצה">פיצה</option>
             <option value="המבורגר">המבורגר</option>
         </select>
     </div>
@@ -329,6 +330,26 @@
 
     // הגדרת קטגוריות, מסעדות ותוספות דינמיות
     const categoriesData = {
+        "חומוס": {
+            title: "מסך הזמנת חומוס",
+            breadLabel: "סוג הלחם / לחם בצד:",
+            breads: ["שתי פיתות רגילות", "שתי פיתות קמח מלא", "שתי פיתות ללא גלוטן", "צלחת בלבד (ללא פיתה)"],
+            meatLabel: "מנת חומוס / סלט:",
+            providers: {
+                "חומוס נרי שוהם": [
+                    "חומוס גרגירים",
+                    "חומוס טחינה",
+                    "חומוס פול",
+                    "חומוס מסבחה",
+                    "חומוס קומפלט (טחינה, פול, גרגירים וביצה)",
+                    "חומוס פטריות טריות",
+                    "חומוס חמשוקה",
+                    "סלט נרי (ירקות, חומוס, טחינה וביצה)"
+                ]
+            },
+            toppingsLabel: "תוספות וסלטים:",
+            toppings: ["ביצה קשה", "צנוברים", "פטריות טריות", "טטבילה (שום לימון)", "חמוצי הבית", "חריף / סחוג", "סלט אישי בצד"]
+        },
         "שווארמה": {
             title: "מסך הזמנת שווארמה",
             breadLabel: "סוג הלחם / הגשה:",
@@ -342,16 +363,16 @@
             toppingsLabel: "תוספות וסלטים:",
             toppings: ["חומוס", "טחינה", "סלט ערבי", "חריף", "חמוצים", "צ'יפס בתוך המנה", "צ'יפס בצד"]
         },
-        "חומוס": {
-            title: "מסך הזמנת חומוס",
+        "פיצה": {
+            title: "מסך הזמנת פיצה",
             breadLabel: "סוג הבצק:",
             breads: ["בצק רגיל", "בצק דק", "בצק עבה", "קצוות גבינה"],
             meatLabel: "גודל המגש:",
             providers: {
-                "חומוס נרי": ["אישי", "משפחתי", "ענק XL"],
-                "חומוס הוט": ["משפחתית קלאסית", "הטריפוניה", "קראנצ'יז"]
+                "פיצה פרדו": ["אישי", "משפחתי", "ענק XL"],
+                "פיצה הוט": ["משפחתית קלאסית", "הטריפוניה", "קראנצ'יז"]
             },
-            toppingsLabel: "תוספות על החומוס:",
+            toppingsLabel: "תוספות על הפיצה:",
             toppings: ["זיתים ירוקים", "זיתים שחורים", "פטריות", "בצל", "תירס", "עגבניות", "חריף"]
         },
         "המבורגר": {
@@ -383,7 +404,7 @@
     let globalUsersData = {};
 
     function renderDynamicForm(categoryName, providerName) {
-        const cat = categoriesData[categoryName] || categoriesData["שווארמה"];
+        const cat = categoriesData[categoryName] || categoriesData["חומוס"];
         mainTitle.innerText = cat.title;
         providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
 
@@ -419,9 +440,11 @@
         const catName = adminCategorySelect.value;
         const cat = categoriesData[catName];
         adminProviderSelect.innerHTML = '';
-        Object.keys(cat.providers).forEach(prov => {
-            adminProviderSelect.innerHTML += `<option value="${prov}">${prov}</option>`;
-        });
+        if (cat && cat.providers) {
+            Object.keys(cat.providers).forEach(prov => {
+                adminProviderSelect.innerHTML += `<option value="${prov}">${prov}</option>`;
+            });
+        }
     }
 
     function updateFormUI(isOpen) {
@@ -436,8 +459,8 @@
             .then(res => res.json())
             .then(data => {
                 updateFormUI(data.isOpen);
-                const activeCat = data.activeCategory || "שווארמה";
-                const activeProv = data.provider || "דונר";
+                const activeCat = data.activeCategory || "חומוס";
+                const activeProv = data.provider || "חומוס נרי שוהם";
 
                 adminCategorySelect.value = activeCat;
                 onAdminCategoryChange();
@@ -620,7 +643,14 @@
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
+            body: JSON.stringify({
+                name: finalName,
+                bread: formData.get('bread'),
+                meat: formData.get('meat'),
+                toppings: selectedToppings.join(', '),
+                notes: formData.get('notes') || '',
+                drink: formData.get('drink') || 'ללא שתייה'
+            })
         })
         .then(() => {
             document.getElementById('shawarmaForm').reset();
