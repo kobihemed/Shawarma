@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת הזמנות</title>
+    <title>הזמנת אוכל</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -215,8 +215,8 @@
         <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <!-- תמונה מתחלפת לפי הקטגוריה -->
-        <img src="hummus.png" id="headerImg" alt="אוכל" class="header-image">
+        <!-- תמונה מתחלפת (hummus.png לחומוס / Sha.png לשווארמה) -->
+        <img src="Sha.png" id="headerImg" alt="אוכל" class="header-image">
 
         <div id="closed-message">
             ⏳ בודק זמינות מערכת...
@@ -304,10 +304,8 @@
     <div class="admin-section">
         <label for="adminCategorySelect">סוג האוכל הפעיל:</label>
         <select id="adminCategorySelect" onchange="onAdminCategoryChange()">
-            <option value="חומוס">חומוס</option>
             <option value="שווארמה">שווארמה</option>
-            <option value="פיצה">פיצה</option>
-            <option value="המבורגר">המבורגר</option>
+            <option value="חומוס">חומוס</option>
         </select>
     </div>
 
@@ -320,7 +318,7 @@
     <div class="admin-section">
         <label for="adminEmailInput">כתובת מייל לקבלת הקובץ המלא:</label>
         <input type="email" id="adminEmailInput" placeholder="example@gmail.com">
-        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח ריכוז Excel מרובה טאבים</button>
+        <button class="btn-admin-export" id="exportBtn" onclick="exportFileToEmail()">📧 שלח ריכוז Excel במייל</button>
     </div>
 
     <button class="close-admin" onclick="toggleAdminPanel(false)">סגור חלונית</button>
@@ -329,8 +327,21 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
 
-    // הגדרת קטגוריות, מנות עם מחירים ותמונות
+    // הגדרת קטגוריות בלבד: שווארמה (דונר + הפינה הלבנה) וחומוס (חומוס נרי שוהם)
     const categoriesData = {
+        "שווארמה": {
+            title: "ברוכים הבאים להזמנת שווארמה!",
+            image: "Sha.png",
+            breadLabel: "סוג הלחם / הגשה:",
+            breads: ["פיתה", "לאפה", "באגט", "צלחת"],
+            meatLabel: "סוג הבשר:",
+            providers: {
+                "הפינה הלבנה": ["הודו", "עגל", "פרגית", "מעורב"],
+                "דונר": ["עגל", "הודו", "מעורב (עגל + הודו)"]
+            },
+            toppingsLabel: "תוספות וסלטים:",
+            toppings: ["חומוס", "טחינה", "סלט ערבי", "חריף", "חמוצים", "צ'יפס בתוך המנה", "צ'יפס בצד"]
+        },
         "חומוס": {
             title: "ברוכים הבאים להזמנת חומוס!",
             image: "hummus.png",
@@ -354,46 +365,6 @@
             },
             toppingsLabel: "תוספות וסלטים:",
             toppings: ["ביצה קשה", "צנוברים", "תוספת פטריות חמות", "טטבילה (שום לימון)", "חמוצי הבית", "חריף / סחוג", "סלט אישי בצד", "צ'יפס בצד"]
-        },
-        "שווארמה": {
-            title: "ברוכים הבאים להזמנת שווארמה!",
-            image: "Sha.png",
-            breadLabel: "סוג הלחם / הגשה:",
-            breads: ["פיתה", "לאפה", "באגט", "צלחת"],
-            meatLabel: "סוג הבשר:",
-            providers: {
-                "דונר": ["עגל", "הודו", "מעורב (עגל + הודו)"],
-                "שווארמה שאוויל": ["פרגית", "עגל", "מעורב (פרגית + עגל)"],
-                "שווארמת הסולטן": ["כבש", "פרגית", "הודו", "מעורב (כבש + הודו)"]
-            },
-            toppingsLabel: "תוספות וסלטים:",
-            toppings: ["חומוס", "טחינה", "סלט ערבי", "חריף", "חמוצים", "צ'יפס בתוך המנה", "צ'יפס בצד"]
-        },
-        "פיצה": {
-            title: "ברוכים הבאים להזמנת פיצה!",
-            image: "Sha.png",
-            breadLabel: "סוג הבצק:",
-            breads: ["בצק רגיל", "בצק דק", "בצק עבה", "קצוות גבינה"],
-            meatLabel: "גודל המגש:",
-            providers: {
-                "פיצה פרדו": ["אישי", "משפחתי", "ענק XL"],
-                "פיצה הוט": ["משפחתית קלאסית", "הטריפוניה", "קראנצ'יז"]
-            },
-            toppingsLabel: "תוספות על הפיצה:",
-            toppings: ["זיתים ירוקים", "זיתים שחורים", "פטריות", "בצל", "תירס", "עגבניות", "חריף"]
-        },
-        "המבורגר": {
-            title: "ברוכים הבאים להזמנת המבורגר!",
-            image: "Sha.png",
-            breadLabel: "סוג הלחמנייה:",
-            breads: ["לחמנייה קלאסית", "לחמניית דגנים", "ללא לחמנייה (בצלחת)"],
-            meatLabel: "מידת עשייה ומשקל:",
-            providers: {
-                "בורגרסבאר": ["160 גרם - MW", "220 גרם - M", "220 גרם - MW", "300 גרם - WD"],
-                "מוזס": ["ארטבורגר 200 גרם", "קלאסי 150 גרם", "דאבל בורגר"]
-            },
-            toppingsLabel: "תוספות בתוך ההמבורגר:",
-            toppings: ["חסה", "עגבנייה", "מלפפון חמוץ", "בצל סגול", "ריבת בצל", "פטריית פורטובלו"]
         }
     };
 
@@ -413,10 +384,10 @@
     let globalUsersData = {};
 
     function renderDynamicForm(categoryName, providerName) {
-        const cat = categoriesData[categoryName] || categoriesData["חומוס"];
+        const cat = categoriesData[categoryName] || categoriesData["שווארמה"];
         mainTitle.innerText = cat.title;
         providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
-        headerImg.src = cat.image || "hummus.png";
+        headerImg.src = cat.image || "Sha.png";
 
         // שדות לחם
         document.getElementById('breadLabel').innerText = cat.breadLabel;
@@ -427,7 +398,7 @@
             breadGroup.innerHTML += `<label class="radio-item"><input type="radio" name="bread" value="${item}" ${req}> ${item}</label>`;
         });
 
-        // שדות מנה
+        // שדות מנה/בשר
         document.getElementById('meatLabel').innerText = cat.meatLabel;
         const meatGroup = document.getElementById('meatOptionsGroup');
         meatGroup.innerHTML = '';
@@ -469,8 +440,8 @@
             .then(res => res.json())
             .then(data => {
                 updateFormUI(data.isOpen);
-                const activeCat = data.activeCategory || "חומוס";
-                const activeProv = data.provider || "חומוס נרי שוהם";
+                const activeCat = data.activeCategory || "שווארמה";
+                const activeProv = data.provider || "הפינה הלבנה";
 
                 adminCategorySelect.value = activeCat;
                 onAdminCategoryChange();
@@ -597,15 +568,15 @@
         }).then(() => {
             alert(`קובץ ה-Excel המלא יישלח לכתובת: ${targetEmail}`);
             btn.disabled = false;
-            btn.innerText = '📧 שלח ריכוז Excel מרובה טאבים';
+            btn.innerText = '📧 שלח ריכוז Excel במייל';
         }).catch(err => {
             alert('אירעה שגיאה בייצוא הקובץ');
             btn.disabled = false;
-            btn.innerText = '📧 שלח ריכוז Excel מרובה טאבים';
+            btn.innerText = '📧 שלח ריכוז Excel במייל';
         });
     }
 
-    // צירוף מקשים נסתר Shift + Alt + M
+    // קיצור מנהל: Shift + Alt + M
     document.addEventListener('keydown', function(e) {
         if (e.shiftKey && e.altKey && (e.code === 'KeyM' || e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
