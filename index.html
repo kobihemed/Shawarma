@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת הזמנות מרובה קטגוריות</title>
+    <title>מערכת הזמנות</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -212,10 +212,11 @@
 
 <div class="container">
     <div id="formScreen">
-        <h1 id="mainTitle">ברוכים הבאים למערכת ההזמנות!</h1>
+        <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <img src="Sha.png" id="headerImg" alt="אוכל" class="header-image">
+        <!-- תמונה מתחלפת לפי הקטגוריה -->
+        <img src="hummus.png" id="headerImg" alt="אוכל" class="header-image">
 
         <div id="closed-message">
             ⏳ בודק זמינות מערכת...
@@ -236,7 +237,7 @@
                     </div>
                 </div>
 
-                <!-- סוג הלחם / הלחמנייה / הפיתות -->
+                <!-- סוג הלחם / הגשה -->
                 <div class="form-group">
                     <label class="section-label" id="breadLabel">סוג הלחם / הגשה:</label>
                     <div class="options-group" id="breadOptionsGroup"></div>
@@ -257,7 +258,7 @@
                 <!-- הערות -->
                 <div class="form-group">
                     <label for="notes" class="section-label">הערות מיוחדות:</label>
-                    <textarea id="notes" name="notes" placeholder="הערות נוספות (בלי פטרוזיליה, הרבה טטבילה וכו')"></textarea>
+                    <textarea id="notes" name="notes" placeholder="הערות נוספות (למשל: בלי שום, הרבה חריף וכו')"></textarea>
                 </div>
 
                 <!-- שתייה -->
@@ -289,7 +290,7 @@
     </div>
 </div>
 
-<!-- חלונית ניהול נסתרת משודרגת -->
+<!-- חלונית ניהול נסתרת (Shift + Alt + M) -->
 <div id="adminPanel">
     <h3>ממשק מנהל מערכת</h3>
     
@@ -328,30 +329,35 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
 
-    // הגדרת קטגוריות, מסעדות ותוספות דינמיות
+    // הגדרת קטגוריות, מנות עם מחירים ותמונות
     const categoriesData = {
         "חומוס": {
-            title: "מסך הזמנת חומוס",
+            title: "ברוכים הבאים להזמנת חומוס!",
+            image: "hummus.png",
             breadLabel: "סוג הלחם / לחם בצד:",
             breads: ["שתי פיתות רגילות", "שתי פיתות קמח מלא", "שתי פיתות ללא גלוטן", "צלחת בלבד (ללא פיתה)"],
             meatLabel: "מנת חומוס / סלט:",
             providers: {
                 "חומוס נרי שוהם": [
-                    "חומוס גרגירים",
-                    "חומוס טחינה",
-                    "חומוס פול",
-                    "חומוס מסבחה",
-                    "חומוס קומפלט (טחינה, פול, גרגירים וביצה)",
-                    "חומוס פטריות טריות",
-                    "חומוס חמשוקה",
-                    "סלט נרי (ירקות, חומוס, טחינה וביצה)"
+                    "חומוס נקי (₪36)",
+                    "חומוס גרגירים (₪38)",
+                    "חומוס טחינה (₪38)",
+                    "חומוס פול (₪38)",
+                    "חומוס מסבחה (₪38)",
+                    "חומוס משולש - טחינה, פול, גרגירים (₪40)",
+                    "חומוס קומפלט - טחינה, פול, גרגירים וביצה (₪43)",
+                    "חומוס פטריות טריות (₪46)",
+                    "חומוס חמשוקה - שקשוקה על חומוס (₪48)",
+                    "חומוס שווארמה טבעונית (₪48)",
+                    "סלט נרי - ירקות, חומוס, טחינה וביצה (₪44)"
                 ]
             },
             toppingsLabel: "תוספות וסלטים:",
-            toppings: ["ביצה קשה", "צנוברים", "פטריות טריות", "טטבילה (שום לימון)", "חמוצי הבית", "חריף / סחוג", "סלט אישי בצד"]
+            toppings: ["ביצה קשה", "צנוברים", "תוספת פטריות חמות", "טטבילה (שום לימון)", "חמוצי הבית", "חריף / סחוג", "סלט אישי בצד", "צ'יפס בצד"]
         },
         "שווארמה": {
-            title: "מסך הזמנת שווארמה",
+            title: "ברוכים הבאים להזמנת שווארמה!",
+            image: "Sha.png",
             breadLabel: "סוג הלחם / הגשה:",
             breads: ["פיתה", "לאפה", "באגט", "צלחת"],
             meatLabel: "סוג הבשר:",
@@ -364,7 +370,8 @@
             toppings: ["חומוס", "טחינה", "סלט ערבי", "חריף", "חמוצים", "צ'יפס בתוך המנה", "צ'יפס בצד"]
         },
         "פיצה": {
-            title: "מסך הזמנת פיצה",
+            title: "ברוכים הבאים להזמנת פיצה!",
+            image: "Sha.png",
             breadLabel: "סוג הבצק:",
             breads: ["בצק רגיל", "בצק דק", "בצק עבה", "קצוות גבינה"],
             meatLabel: "גודל המגש:",
@@ -376,7 +383,8 @@
             toppings: ["זיתים ירוקים", "זיתים שחורים", "פטריות", "בצל", "תירס", "עגבניות", "חריף"]
         },
         "המבורגר": {
-            title: "מסך הזמנת המבורגר",
+            title: "ברוכים הבאים להזמנת המבורגר!",
+            image: "Sha.png",
             breadLabel: "סוג הלחמנייה:",
             breads: ["לחמנייה קלאסית", "לחמניית דגנים", "ללא לחמנייה (בצלחת)"],
             meatLabel: "מידת עשייה ומשקל:",
@@ -394,6 +402,7 @@
     const closedMessage = document.getElementById('closed-message');
     const providerSubtitle = document.getElementById('providerSubtitle');
     const mainTitle = document.getElementById('mainTitle');
+    const headerImg = document.getElementById('headerImg');
     const userSelect = document.getElementById('userSelect');
     const newUserGroup = document.getElementById('newUserGroup');
     const newUserNameInput = document.getElementById('newUserName');
@@ -407,8 +416,9 @@
         const cat = categoriesData[categoryName] || categoriesData["חומוס"];
         mainTitle.innerText = cat.title;
         providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
+        headerImg.src = cat.image || "hummus.png";
 
-        // עדכון שדות לחם/בסיס
+        // שדות לחם
         document.getElementById('breadLabel').innerText = cat.breadLabel;
         const breadGroup = document.getElementById('breadOptionsGroup');
         breadGroup.innerHTML = '';
@@ -417,7 +427,7 @@
             breadGroup.innerHTML += `<label class="radio-item"><input type="radio" name="bread" value="${item}" ${req}> ${item}</label>`;
         });
 
-        // עדכון שדות מנה ראשית/בשר
+        // שדות מנה
         document.getElementById('meatLabel').innerText = cat.meatLabel;
         const meatGroup = document.getElementById('meatOptionsGroup');
         meatGroup.innerHTML = '';
@@ -427,7 +437,7 @@
             meatGroup.innerHTML += `<label class="radio-item"><input type="radio" name="meat" value="${item}" ${req}> ${item}</label>`;
         });
 
-        // עדכון תוספות
+        // שדות תוספות
         document.getElementById('toppingsLabel').innerText = cat.toppingsLabel;
         const toppingsGroup = document.getElementById('toppingsOptionsGroup');
         toppingsGroup.innerHTML = '';
@@ -561,7 +571,7 @@
             })
         }).then(() => {
             renderDynamicForm(selectedCat, selectedProv);
-            alert('קטגוריית המזון והמסעדה עודכנו בהצלחה!');
+            alert('ההגדרות עודכנו בהצלחה!');
         });
     }
 
@@ -585,7 +595,7 @@
                 recipientEmail: targetEmail
             })
         }).then(() => {
-            alert(`קובץ ה-Excel המלא (כל הטאבים) יישלח לכתובת: ${targetEmail}`);
+            alert(`קובץ ה-Excel המלא יישלח לכתובת: ${targetEmail}`);
             btn.disabled = false;
             btn.innerText = '📧 שלח ריכוז Excel מרובה טאבים';
         }).catch(err => {
@@ -643,14 +653,7 @@
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: finalName,
-                bread: formData.get('bread'),
-                meat: formData.get('meat'),
-                toppings: selectedToppings.join(', '),
-                notes: formData.get('notes') || '',
-                drink: formData.get('drink') || 'ללא שתייה'
-            })
+            body: JSON.stringify(orderData)
         })
         .then(() => {
             document.getElementById('shawarmaForm').reset();
