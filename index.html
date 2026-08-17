@@ -215,7 +215,7 @@
         <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <!-- תמונה מתחלפת (hummus.png לחומוס / Sha.png לשווארמה) -->
+        <!-- תמונה מתחלפת דינמית -->
         <img src="Sha.png" id="headerImg" alt="אוכל" class="header-image">
 
         <div id="closed-message">
@@ -237,8 +237,8 @@
                     </div>
                 </div>
 
-                <!-- סוג הלחם / הגשה -->
-                <div class="form-group">
+                <!-- סוג הלחם / הגשה (מוצג רק בשווארמה) -->
+                <div class="form-group" id="breadFormGroup">
                     <label class="section-label" id="breadLabel">סוג הלחם / הגשה:</label>
                     <div class="options-group" id="breadOptionsGroup"></div>
                 </div>
@@ -259,22 +259,6 @@
                 <div class="form-group">
                     <label for="notes" class="section-label">הערות מיוחדות:</label>
                     <textarea id="notes" name="notes" placeholder="הערות נוספות (למשל: בלי שום, הרבה חריף וכו')"></textarea>
-                </div>
-
-                <!-- שתייה -->
-                <div class="form-group">
-                    <label for="drink" class="section-label">שתייה:</label>
-                    <select id="drink" name="drink">
-                        <option value="ללא שתייה">ללא שתייה</option>
-                        <option value="קוקה קולה">קוקה קולה</option>
-                        <option value="קולה זירו">קולה זירו</option>
-                        <option value="ספרייט">ספרייט</option>
-                        <option value="ספרייט זירו">ספרייט זירו</option>
-                        <option value="פנטה">פנטה</option>
-                        <option value="ענבים">מיץ ענבים</option>
-                        <option value="סודה">סודה</option>
-                        <option value="מים מינרליים">מים מינרליים</option>
-                    </select>
                 </div>
 
                 <button type="submit" class="btn-submit" id="submitBtn">שלח הזמנה</button>
@@ -327,11 +311,11 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
 
-    // הגדרת קטגוריות בלבד: שווארמה (דונר + הפינה הלבנה) וחומוס (חומוס נרי שוהם)
     const categoriesData = {
         "שווארמה": {
             title: "ברוכים הבאים להזמנת שווארמה!",
             image: "Sha.png",
+            showBread: true,
             breadLabel: "סוג הלחם / הגשה:",
             breads: ["פיתה", "לאפה", "באגט", "צלחת"],
             meatLabel: "סוג הבשר:",
@@ -345,8 +329,9 @@
         "חומוס": {
             title: "ברוכים הבאים להזמנת חומוס!",
             image: "hummus.png",
-            breadLabel: "סוג הלחם / לחם בצד:",
-            breads: ["שתי פיתות רגילות", "שתי פיתות קמח מלא", "שתי פיתות ללא גלוטן", "צלחת בלבד (ללא פיתה)"],
+            showBread: false,
+            breadLabel: "",
+            breads: [],
             meatLabel: "מנת חומוס / סלט:",
             providers: {
                 "חומוס נרי שוהם": [
@@ -364,7 +349,7 @@
                 ]
             },
             toppingsLabel: "תוספות וסלטים:",
-            toppings: ["ביצה קשה", "צנוברים", "תוספת פטריות חמות", "טטבילה (שום לימון)", "חמוצי הבית", "חריף / סחוג", "סלט אישי בצד", "צ'יפס בצד"]
+            toppings: ["ביצה קשה", "סלט אישי בצד"]
         }
     };
 
@@ -380,6 +365,7 @@
     const adminCategorySelect = document.getElementById('adminCategorySelect');
     const adminProviderSelect = document.getElementById('adminProviderSelect');
     const adminEmailInput = document.getElementById('adminEmailInput');
+    const breadFormGroup = document.getElementById('breadFormGroup');
 
     let globalUsersData = {};
 
@@ -389,14 +375,20 @@
         providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
         headerImg.src = cat.image || "Sha.png";
 
-        // שדות לחם
-        document.getElementById('breadLabel').innerText = cat.breadLabel;
-        const breadGroup = document.getElementById('breadOptionsGroup');
-        breadGroup.innerHTML = '';
-        cat.breads.forEach((item, index) => {
-            const req = index === 0 ? 'required' : '';
-            breadGroup.innerHTML += `<label class="radio-item"><input type="radio" name="bread" value="${item}" ${req}> ${item}</label>`;
-        });
+        // טיפול בשדות לחם / הגשה
+        if (cat.showBread) {
+            breadFormGroup.style.display = 'block';
+            document.getElementById('breadLabel').innerText = cat.breadLabel;
+            const breadGroup = document.getElementById('breadOptionsGroup');
+            breadGroup.innerHTML = '';
+            cat.breads.forEach((item, index) => {
+                const req = index === 0 ? 'required' : '';
+                breadGroup.innerHTML += `<label class="radio-item"><input type="radio" name="bread" value="${item}" ${req}> ${item}</label>`;
+            });
+        } else {
+            breadFormGroup.style.display = 'none';
+            document.getElementById('breadOptionsGroup').innerHTML = '';
+        }
 
         // שדות מנה/בשר
         document.getElementById('meatLabel').innerText = cat.meatLabel;
@@ -505,7 +497,6 @@
             });
         }
         document.getElementById('notes').value = userData.notes || '';
-        document.getElementById('drink').value = userData.drink || 'ללא שתייה';
     }
 
     function resetFormOptions() {
@@ -513,7 +504,6 @@
         document.querySelectorAll('input[name="meat"]').forEach(r => r.checked = false);
         document.querySelectorAll('input[name="toppings"]').forEach(cb => cb.checked = false);
         document.getElementById('notes').value = '';
-        document.getElementById('drink').value = 'ללא שתייה';
     }
 
     orderToggle.addEventListener('change', function() {
@@ -613,11 +603,11 @@
 
         const orderData = {
             name: finalName,
-            bread: formData.get('bread'),
+            bread: formData.get('bread') || 'ללא',
             meat: formData.get('meat'),
             toppings: selectedToppings.join(', '),
             notes: formData.get('notes') || '',
-            drink: formData.get('drink') || 'ללא שתייה'
+            drink: 'ללא שתייה'
         };
 
         fetch(SCRIPT_URL, {
