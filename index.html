@@ -42,7 +42,7 @@
             object-fit: contain;
             border-radius: 8px;
             margin-bottom: 20px;
-            display: block;
+            display: none; /* מוסתר כברירת מחדל בזמן בדיקת זמינות */
         }
         .form-group {
             margin-bottom: 20px;
@@ -215,8 +215,8 @@
         <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <!-- תמונה מתחלפת דינמית -->
-        <img src="Sha.png" id="headerImg" alt="אוכל" class="header-image">
+        <!-- תמונה מתחלפת דינמית (נשארת מוסתרת עד טעינת הנתונים) -->
+        <img id="headerImg" alt="אוכל" class="header-image">
 
         <div id="closed-message">
             ⏳ בודק זמינות מערכת...
@@ -373,7 +373,10 @@
         const cat = categoriesData[categoryName] || categoriesData["שווארמה"];
         mainTitle.innerText = cat.title;
         providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
+        
+        // הגדרת מקור התמונה והצגתה רק לאחר שהמידע זמין
         headerImg.src = cat.image || "Sha.png";
+        headerImg.style.display = "block";
 
         // טיפול בשדות לחם / הגשה
         if (cat.showBread) {
@@ -636,6 +639,7 @@
     function resetToNewOrder() {
         document.getElementById('confirmationScreen').style.display = 'none';
         document.getElementById('formScreen').style.display = 'block';
+        headerImg.style.display = "none";
         checkSystemStatus();
     }
 
