@@ -25,15 +25,29 @@
         h1 {
             color: #d9534f;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-size: 22px;
         }
         .subtitle {
             text-align: center;
             font-size: 16px;
             color: #555;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-weight: 600;
+        }
+        /* תגית מונה מזמינים היום */
+        #todayOrdersCount {
+            display: none;
+            background-color: #e8f4fd;
+            color: #0d6efd;
+            border: 1px solid #b6d4fe;
+            border-radius: 20px;
+            padding: 6px 14px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            width: fit-content;
+            margin: 0 auto 15px auto;
         }
         .header-image {
             width: 100%;
@@ -42,7 +56,7 @@
             object-fit: contain;
             border-radius: 8px;
             margin-bottom: 20px;
-            display: none; /* מוסתר כברירת מחדל בזמן בדיקת זמינות */
+            display: none;
         }
         .form-group {
             margin-bottom: 20px;
@@ -215,7 +229,9 @@
         <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <!-- תמונה מתחלפת דינמית (נשארת מוסתרת עד טעינת הנתונים) -->
+        <!-- מונה אנשים שהזמינו היום -->
+        <div id="todayOrdersCount"></div>
+
         <img id="headerImg" alt="אוכל" class="header-image">
 
         <div id="closed-message">
@@ -320,6 +336,7 @@
             breads: ["פיתה", "לאפה", "באגט", "צלחת"],
             meatLabel: "סוג הבשר:",
             providers: {
+                "הרצל 50": ["עגל", "פרגית", "מעורב", "הודו"],
                 "הפינה הלבנה": ["הודו", "עגל", "פרגית", "מעורב"],
                 "דונר": ["עגל", "הודו", "מעורב (עגל + הודו)"]
             },
@@ -366,19 +383,53 @@
     const adminProviderSelect = document.getElementById('adminProviderSelect');
     const adminEmailInput = document.getElementById('adminEmailInput');
     const breadFormGroup = document.getElementById('breadFormGroup');
+    const todayOrdersCount = document.getElementById('todayOrdersCount');
 
     let globalUsersData = {};
+
+    function updateTodayCount(ordersList) {
+        if (!ordersList || !Array.isArray(ordersList)) {
+            todayOrdersCount.style.display = 'none';
+            return;
+        }
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const currentDate = now.getDate();
+
+        let count = 0;
+        ordersList.forEach(item => {
+            if (item.date) {
+                const orderDate = new Date(item.date);
+                if (
+                    orderDate.getFullYear() === currentYear &&
+                    orderDate.getMonth() === currentMonth &&
+                    orderDate.getDate() === currentDate
+                ) {
+                    count++;
+                }
+            }
+        });
+
+        if (count === 0) {
+            todayOrdersCount.innerText = "טרם בוצעו הזמנות היום 🍽️";
+        } else if (count === 1) {
+            todayOrdersCount.innerText = "אדם אחד כבר ביצע הזמנה היום 🌯";
+        } else {
+            todayOrdersCount.innerText = `${count} אנשים כבר ביצעו הזמנה היום 🌯`;
+        }
+        todayOrdersCount.style.display = 'block';
+    }
 
     function renderDynamicForm(categoryName, providerName) {
         const cat = categoriesData[categoryName] || categoriesData["שווארמה"];
         mainTitle.innerText = cat.title;
         providerSubtitle.innerText = `היום ההזמנה מגיעה מ${providerName}`;
         
-        // הגדרת מקור התמונה והצגתה רק לאחר שהמידע זמין
         headerImg.src = cat.image || "Sha.png";
         headerImg.style.display = "block";
 
-        // טיפול בשדות לחם / הגשה
         if (cat.showBread) {
             breadFormGroup.style.display = 'block';
             document.getElementById('breadLabel').innerText = cat.breadLabel;
@@ -393,7 +444,6 @@
             document.getElementById('breadOptionsGroup').innerHTML = '';
         }
 
-        // שדות מנה/בשר
         document.getElementById('meatLabel').innerText = cat.meatLabel;
         const meatGroup = document.getElementById('meatOptionsGroup');
         meatGroup.innerHTML = '';
@@ -403,7 +453,6 @@
             meatGroup.innerHTML += `<label class="radio-item"><input type="radio" name="meat" value="${item}" ${req}> ${item}</label>`;
         });
 
-        // שדות תוספות
         document.getElementById('toppingsLabel').innerText = cat.toppingsLabel;
         const toppingsGroup = document.getElementById('toppingsOptionsGroup');
         toppingsGroup.innerHTML = '';
@@ -426,7 +475,10 @@
     function updateFormUI(isOpen) {
         formFields.disabled = !isOpen;
         closedMessage.style.display = isOpen ? 'none' : 'block';
-        if (!isOpen) closedMessage.innerHTML = '🚫 המערכת סגורה כרגע לקבלת הזמנות חדשות.';
+        if (!isOpen) {
+            closedMessage.innerHTML = '🚫 המערכת סגורה כרגע לקבלת הזמנות חדשות.';
+            todayOrdersCount.style.display = 'none';
+        }
         orderToggle.checked = isOpen;
     }
 
@@ -436,13 +488,17 @@
             .then(data => {
                 updateFormUI(data.isOpen);
                 const activeCat = data.activeCategory || "שווארמה";
-                const activeProv = data.provider || "הפינה הלבנה";
+                const activeProv = data.provider || "הרצל 50";
 
                 adminCategorySelect.value = activeCat;
                 onAdminCategoryChange();
                 adminProviderSelect.value = activeProv;
 
                 renderDynamicForm(activeCat, activeProv);
+
+                if (data.isOpen) {
+                    updateTodayCount(data.orders);
+                }
 
                 if (data.users) {
                     globalUsersData = data.users;
@@ -452,6 +508,7 @@
             .catch(err => {
                 console.error('Error fetching status:', err);
                 closedMessage.innerHTML = '🚫 אירעה שגיאה בבדיקת סטטוס המערכת.';
+                todayOrdersCount.style.display = 'none';
             });
     }
 
@@ -536,6 +593,7 @@
         }).then(() => {
             renderDynamicForm(selectedCat, selectedProv);
             alert('ההגדרות עודכנו בהצלחה!');
+            checkSystemStatus();
         });
     }
 
