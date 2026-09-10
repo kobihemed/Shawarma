@@ -35,7 +35,6 @@
             margin-bottom: 12px;
             font-weight: 600;
         }
-        /* תגית מונה מזמינים היום */
         #todayOrdersCount {
             display: none;
             background-color: #e8f4fd;
@@ -229,7 +228,7 @@
         <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <!-- מונה אנשים שהזמינו היום -->
+        <!-- תגית מונה מזמינים -->
         <div id="todayOrdersCount"></div>
 
         <img id="headerImg" alt="אוכל" class="header-image">
@@ -325,7 +324,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFs6dJL_ymnL3NQHcuFdqsyrBik6NHIcDh9mt0GbTSPc-OoBCpzF3Mij0zLQPQPyDE/exec';
 
     const categoriesData = {
         "שווארמה": {
@@ -387,30 +386,11 @@
 
     let globalUsersData = {};
 
-    function updateTodayCount(ordersList) {
-        if (!ordersList || !Array.isArray(ordersList)) {
+    function displayTodayCount(count) {
+        if (typeof count !== 'number') {
             todayOrdersCount.style.display = 'none';
             return;
         }
-
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        const currentDate = now.getDate();
-
-        let count = 0;
-        ordersList.forEach(item => {
-            if (item.date) {
-                const orderDate = new Date(item.date);
-                if (
-                    orderDate.getFullYear() === currentYear &&
-                    orderDate.getMonth() === currentMonth &&
-                    orderDate.getDate() === currentDate
-                ) {
-                    count++;
-                }
-            }
-        });
 
         if (count === 0) {
             todayOrdersCount.innerText = "טרם בוצעו הזמנות היום 🍽️";
@@ -496,8 +476,10 @@
 
                 renderDynamicForm(activeCat, activeProv);
 
-                if (data.isOpen) {
-                    updateTodayCount(data.orders);
+                if (data.isOpen && typeof data.todayCount !== 'undefined') {
+                    displayTodayCount(data.todayCount);
+                } else if (!data.isOpen) {
+                    todayOrdersCount.style.display = 'none';
                 }
 
                 if (data.users) {
@@ -627,7 +609,6 @@
         });
     }
 
-    // קיצור מנהל: Shift + Alt + M
     document.addEventListener('keydown', function(e) {
         if (e.shiftKey && e.altKey && (e.code === 'KeyM' || e.key === 'M' || e.key === 'm' || e.key === 'צ')) {
             e.preventDefault();
