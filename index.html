@@ -342,7 +342,13 @@
     <div class="admin-section">
         <label for="adminProviderSelect">שם המסעדה להיום:</label>
         <select id="adminProviderSelect"></select>
-        <button class="btn-admin-action" onclick="saveCategoryAndProvider()">עדכן הגדרות פעילות</button>
+    </div>
+
+    <!-- שדה חדש: שינוי מספר טלפון לתשלום ב-BIT -->
+    <div class="admin-section">
+        <label for="adminBitPhoneInput">מספר טלפון לתשלום ב-BIT:</label>
+        <input type="text" id="adminBitPhoneInput" placeholder="0501234567">
+        <button class="btn-admin-action" onclick="saveCategoryAndProvider()">עדכן הגדרות מערכת</button>
     </div>
 
     <div class="admin-section">
@@ -355,10 +361,10 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzPA0EVn80FCbvNTKsm1clgmVe_cSNCKXhOb2kYCyqhOoT6y9wx0RKvLkLhVaBam11/exec';
 
-    // הגדרות תשלום ב-bit (החלף למספר הטלפון שלך)
-    const BIT_PHONE = "0501234567"; 
+    // משתנה דינמי למספר טלפון לתשלום ב-bit (נטען מ-Google Sheets)
+    let currentBitPhone = "0501234567";
     const BIT_DEFAULT_AMOUNT = "45"; 
 
     const categoriesData = {
@@ -415,6 +421,7 @@
     const newUserNameInput = document.getElementById('newUserName');
     const adminCategorySelect = document.getElementById('adminCategorySelect');
     const adminProviderSelect = document.getElementById('adminProviderSelect');
+    const adminBitPhoneInput = document.getElementById('adminBitPhoneInput');
     const adminEmailInput = document.getElementById('adminEmailInput');
     const breadFormGroup = document.getElementById('breadFormGroup');
     const todayOrdersCount = document.getElementById('todayOrdersCount');
@@ -505,6 +512,11 @@
                 updateFormUI(data.isOpen);
                 const activeCat = data.activeCategory || "שווארמה";
                 const activeProv = data.provider || "הרצל 50";
+
+                if (data.bitPhone) {
+                    currentBitPhone = data.bitPhone;
+                    adminBitPhoneInput.value = data.bitPhone;
+                }
 
                 adminCategorySelect.value = activeCat;
                 onAdminCategoryChange();
@@ -598,6 +610,14 @@
     function saveCategoryAndProvider() {
         const selectedCat = adminCategorySelect.value;
         const selectedProv = adminProviderSelect.value;
+        const newBitPhone = adminBitPhoneInput.value.trim().replace(/[^0-9]/g, '');
+
+        if (!newBitPhone) {
+            alert('נא להזין מספר טלפון תקין ל-BIT');
+            return;
+        }
+
+        currentBitPhone = newBitPhone;
 
         fetch(SCRIPT_URL, {
             method: 'POST',
@@ -606,11 +626,12 @@
             body: JSON.stringify({ 
                 action: 'updateCategoryAndProvider', 
                 category: selectedCat,
-                provider: selectedProv 
+                provider: selectedProv,
+                bitPhone: newBitPhone
             })
         }).then(() => {
             renderDynamicForm(selectedCat, selectedProv);
-            alert('ההגדרות עודכנו בהצלחה!');
+            alert('כל ההגדרות (כולל מספר הטלפון ל-BIT) עודכנו בהצלחה!');
             checkSystemStatus();
         });
     }
@@ -681,7 +702,6 @@
 
         const selectedMeat = formData.get('meat') || '';
         
-        // חילוץ המחיר מהמנה אם צוין (למשל מחומוס ₪38), אחרת שימוש בסכום ברירת המחדל
         let paymentAmount = BIT_DEFAULT_AMOUNT;
         const priceMatch = selectedMeat.match(/₪(\d+)/);
         if (priceMatch && priceMatch[1]) {
@@ -712,12 +732,10 @@
             submitBtn.disabled = false;
             submitBtn.innerText = 'שלח הזמנה';
 
-            // בניית קישור Deep Link עבור bit
-            const bitDeepLink = `bit://send?phone=${BIT_PHONE}&amount=${paymentAmount}`;
+            const bitDeepLink = `bit://send?phone=${currentBitPhone}&amount=${paymentAmount}`;
             bitPayBtn.href = bitDeepLink;
             bitPayBtn.innerText = `💙 מעבר לתשלום ${paymentAmount} ₪ באפליקציית bit`;
 
-            // פתיחה אוטומטית של אפליקציית bit במכשירים ניידים
             window.location.href = bitDeepLink;
         })
         .catch(error => {
