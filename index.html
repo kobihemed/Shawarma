@@ -137,7 +137,29 @@
             font-size: 18px;
             color: #333;
             line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .bit-container {
+            background-color: #f0fbff;
+            border: 2px solid #00b0ca;
+            border-radius: 12px;
+            padding: 18px;
             margin-bottom: 25px;
+        }
+        .bit-btn {
+            background-color: #00b0ca;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-block;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0, 176, 202, 0.3);
+            transition: background-color 0.2s;
+        }
+        .bit-btn:hover {
+            background-color: #0095ab;
         }
         .btn-new-order {
             background-color: #6c757d;
@@ -228,7 +250,7 @@
         <h1 id="mainTitle">ברוכים הבאים להזמנה שלנו!</h1>
         <div class="subtitle" id="providerSubtitle">היום המזון מגיע מ...</div>
 
-        <!-- תגית מונה מזמינים -->
+        <!-- מונה אנשים שהזמינו היום -->
         <div id="todayOrdersCount"></div>
 
         <img id="headerImg" alt="אוכל" class="header-image">
@@ -281,10 +303,19 @@
         </form>
     </div>
 
-    <!-- מסך אישור -->
+    <!-- מסך אישור עם תשלום ב-bit -->
     <div id="confirmationScreen">
         <h2>🎉 ההזמנה נקלטה בהצלחה!</h2>
         <p>ההזמנה נשלחה למרכז ההזמנות <strong>"LalushMobile"</strong> וצפויה להיות מוגשת עד השעה <strong>12:00</strong></p>
+        
+        <div class="bit-container">
+            <p style="margin: 0 0 12px 0; font-weight: bold; color: #004085; font-size: 17px;">תשלום עבור ההזמנה ב-bit:</p>
+            <a id="bitPayBtn" href="#" class="bit-btn">
+                💙 מעבר לתשלום באפליקציית bit
+            </a>
+            <p style="font-size: 13px; color: #666; margin: 10px 0 0 0;">(אם האפליקציה לא נפתחה אוטומטית, לחץ על הכפתור למעלה)</p>
+        </div>
+
         <button class="btn-new-order" onclick="resetToNewOrder()">ביצוע הזמנה נוספת</button>
     </div>
 </div>
@@ -324,7 +355,11 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFs6dJL_ymnL3NQHcuFdqsyrBik6NHIcDh9mt0GbTSPc-OoBCpzF3Mij0zLQPQPyDE/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvm9yU7e9x_iqA5Q0eMFYwveCbDxZJybg7D3eaqqe2KroYXospNMfWLKEuPBbN2kw3/exec';
+
+    // הגדרות תשלום ב-bit (מספר טלפון וסכום קבוע)
+    const BIT_PHONE = "0501234567"; // <-- הכנס כאן את מספר הטלפון המקבל
+    const BIT_DEFAULT_AMOUNT = "45"; // <-- סכום ברירת מחדל בש"ח
 
     const categoriesData = {
         "שווארמה": {
@@ -337,7 +372,7 @@
             providers: {
                 "הרצל 50": ["עגל", "פרגית", "מעורב", "הודו"],
                 "הפינה הלבנה": ["הודו", "עגל", "פרגית", "מעורב"],
-                "דונר": ["עגל", "פרגית", "מעורב (עגל + פרגית)"]
+                "דונר": ["עגל", "הודו", "מעורב (עגל + הודו)"]
             },
             toppingsLabel: "תוספות וסלטים:",
             toppings: ["חומוס", "טחינה", "סלט ערבי", "חריף", "חמוצים", "צ'יפס בתוך המנה", "צ'יפס בצד"]
@@ -383,6 +418,7 @@
     const adminEmailInput = document.getElementById('adminEmailInput');
     const breadFormGroup = document.getElementById('breadFormGroup');
     const todayOrdersCount = document.getElementById('todayOrdersCount');
+    const bitPayBtn = document.getElementById('bitPayBtn');
 
     let globalUsersData = {};
 
@@ -643,10 +679,19 @@
             selectedToppings.push(el.value);
         });
 
+        const selectedMeat = formData.get('meat') || '';
+        
+        // חילוץ המחיר מהמנה במידה ומדובר בחומוס (למשל: ₪38 -> 38), או שימוש בסכום ברירת המחדל
+        let paymentAmount = BIT_DEFAULT_AMOUNT;
+        const priceMatch = selectedMeat.match(/₪(\d+)/);
+        if (priceMatch && priceMatch[1]) {
+            paymentAmount = priceMatch[1];
+        }
+
         const orderData = {
             name: finalName,
             bread: formData.get('bread') || 'ללא',
-            meat: formData.get('meat'),
+            meat: selectedMeat,
             toppings: selectedToppings.join(', '),
             notes: formData.get('notes') || '',
             drink: 'ללא שתייה'
@@ -666,6 +711,14 @@
             
             submitBtn.disabled = false;
             submitBtn.innerText = 'שלח הזמנה';
+
+            // בניית קישור Deep Link עבור bit
+            const bitDeepLink = `bit://send?phone=${BIT_PHONE}&amount=${paymentAmount}`;
+            bitPayBtn.href = bitDeepLink;
+            bitPayBtn.innerText = `💙 מעבר לתשלום ${paymentAmount} ₪ באפליקציית bit`;
+
+            // פתיחה אוטומטית בנייד
+            window.location.href = bitDeepLink;
         })
         .catch(error => {
             console.error('Error:', error);
